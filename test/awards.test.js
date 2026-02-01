@@ -16,6 +16,13 @@ test('parseMentions extracts unique recipients and reason', () => {
   assert.equal(result.reason, 'thanks!');
 });
 
+test('parseMentions supports space between mention and pluses', () => {
+  const result = parseMentions('<@U123> ++ for jumping in');
+  assert.ok(result);
+  assert.deepEqual(result.recipients, ['U123']);
+  assert.equal(result.reason, 'for jumping in');
+});
+
 test('parseMentions handles reason-only whitespace', () => {
   const result = parseMentions('<@U999>++   ');
   assert.ok(result);
