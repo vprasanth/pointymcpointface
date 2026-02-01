@@ -16,12 +16,19 @@ const { registerListeners } = require('./listeners');
 const {
   DATABASE_URL,
   DATABASE_SSL,
+  DATABASE_SSL_CA,
+  DATABASE_SSL_REJECT_UNAUTHORIZED,
   PORT,
+  INSTALLATION_ENCRYPTION_KEY,
   SLACK_CLIENT_ID,
   SLACK_CLIENT_SECRET,
   SLACK_SIGNING_SECRET,
   SLACK_STATE_SECRET,
-  SLACK_SCOPES
+  SLACK_SCOPES,
+  ALLOW_SELF_AWARD,
+  AWARD_MAX_RECIPIENTS,
+  AWARD_RATE_LIMIT_MAX,
+  AWARD_RATE_LIMIT_WINDOW_MS
 } = process.env;
 
 if (!DATABASE_URL) {
@@ -32,10 +39,22 @@ if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET || !SLACK_SIGNING_SECRET || !SLACK_
   throw new Error('Slack OAuth env vars are required');
 }
 
+if (!INSTALLATION_ENCRYPTION_KEY) {
+  throw new Error('INSTALLATION_ENCRYPTION_KEY is required');
+}
+
 const sslEnabled = String(DATABASE_SSL).toLowerCase() === 'true';
+const sslRejectUnauthorized =
+  String(DATABASE_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() !== 'false';
+const sslCa = DATABASE_SSL_CA ? DATABASE_SSL_CA.replace(/\\n/g, '\n') : undefined;
 const pool = new Pool({
   connectionString: DATABASE_URL,
-  ssl: sslEnabled ? { rejectUnauthorized: false } : undefined
+  ssl: sslEnabled
+    ? {
+        rejectUnauthorized: sslRejectUnauthorized,
+        ca: sslCa ? [sslCa] : undefined
+      }
+    : undefined
 });
 
 const lifecycle = createLifecycle({ logger: console });
@@ -66,6 +85,39 @@ const app = new App({
 });
 
 const mentionRegex = /<@([A-Z0-9]+)>\+\+/g;
+const allowSelfAward = String(ALLOW_SELF_AWARD).toLowerCase() === 'true';
+
+function parseIntEnv(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+const maxRecipientsPerMessage = parseIntEnv(AWARD_MAX_RECIPIENTS, 5);
+const rateLimitMax = parseIntEnv(AWARD_RATE_LIMIT_MAX, 5);
+const rateLimitWindowMs = parseIntEnv(AWARD_RATE_LIMIT_WINDOW_MS, 60000);
+const rateLimitCache = new Map();
+
+function checkRateLimit(teamId, giverId, count) {
+  if (rateLimitMax <= 0 || rateLimitWindowMs <= 0) {
+    return { allowed: true };
+  }
+
+  const key = `${teamId}:${giverId}`;
+  const now = Date.now();
+  let entry = rateLimitCache.get(key);
+  if (!entry || now >= entry.resetAt) {
+    entry = { count: 0, resetAt: now + rateLimitWindowMs };
+  }
+
+  if (entry.count + count > rateLimitMax) {
+    rateLimitCache.set(key, entry);
+    return { allowed: false, resetAt: entry.resetAt, remaining: Math.max(0, rateLimitMax - entry.count) };
+  }
+
+  entry.count += count;
+  rateLimitCache.set(key, entry);
+  return { allowed: true, resetAt: entry.resetAt, remaining: rateLimitMax - entry.count };
+}
 
 function parseMentions(text) {
   mentionRegex.lastIndex = 0;
@@ -118,12 +170,35 @@ app.message(async ({ message, say, context }) => {
     return;
   }
 
-  const { recipients, reason } = parsed;
+  const { reason } = parsed;
   const giverId = message.user;
   const teamId = context.teamId || message.team;
   const channelId = message.channel;
   const messageTs = message.ts;
   const threadTs = message.thread_ts || null;
+  const originalRecipients = parsed.recipients;
+  const recipients = allowSelfAward
+    ? originalRecipients
+    : originalRecipients.filter((recipient) => recipient !== giverId);
+
+  if (!recipients.length) {
+    if (!allowSelfAward && originalRecipients.includes(giverId)) {
+      await say({ text: 'Self-awards are not allowed.' });
+    }
+    return;
+  }
+
+  if (maxRecipientsPerMessage > 0 && recipients.length > maxRecipientsPerMessage) {
+    await say({ text: `Too many recipients. Max per message is ${maxRecipientsPerMessage}.` });
+    return;
+  }
+
+  const rateCheck = checkRateLimit(teamId, giverId, recipients.length);
+  if (!rateCheck.allowed) {
+    const retryInSeconds = Math.max(1, Math.ceil((rateCheck.resetAt - Date.now()) / 1000));
+    await say({ text: `Rate limit exceeded. Try again in ${retryInSeconds} seconds.` });
+    return;
+  }
 
   void emitLifecycle('points.award.received', {
     teamId,
@@ -138,26 +213,30 @@ app.message(async ({ message, say, context }) => {
   try {
     const results = [];
     for (const receiverId of recipients) {
-      const { points, eventId, eventCreatedAt } = await incrementPoints(pool, {
+      const { points, eventId, eventCreatedAt, deduped } = await incrementPoints(pool, {
         teamId,
+        channelId,
+        messageTs,
         giverId,
         receiverId,
         reason
       });
       results.push({ receiverId, points });
 
-      void emitLifecycle('points.awarded', {
-        teamId,
-        channelId,
-        messageTs,
-        threadTs,
-        giverId,
-        receiverId,
-        points,
-        reason,
-        eventId,
-        eventCreatedAt
-      });
+      if (!deduped) {
+        void emitLifecycle('points.awarded', {
+          teamId,
+          channelId,
+          messageTs,
+          threadTs,
+          giverId,
+          receiverId,
+          points,
+          reason,
+          eventId,
+          eventCreatedAt
+        });
+      }
     }
 
     let response;

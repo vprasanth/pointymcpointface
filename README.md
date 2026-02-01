@@ -56,17 +56,28 @@ Required:
 - `SLACK_CLIENT_SECRET`
 - `SLACK_SIGNING_SECRET`
 - `SLACK_STATE_SECRET`
+- `INSTALLATION_ENCRYPTION_KEY` (32-byte base64 or 64-char hex)
 - `DATABASE_URL`
+
+Generate an encryption key with `openssl rand -base64 32` or `openssl rand -hex 32`.
 
 Optional:
 - `SLACK_SCOPES` (comma-separated)
 - `OAUTH_STATE_TTL_MS` (default 600000)
 - `DATABASE_SSL` (`true` to enable SSL)
+- `DATABASE_SSL_CA` (PEM-encoded CA certificate)
+- `DATABASE_SSL_REJECT_UNAUTHORIZED` (`false` only for local/self-signed testing)
+- `ALLOW_SELF_AWARD` (`true` to allow giving points to yourself)
+- `AWARD_MAX_RECIPIENTS` (default 5)
+- `AWARD_RATE_LIMIT_MAX` (default 5)
+- `AWARD_RATE_LIMIT_WINDOW_MS` (default 60000)
 - `PORT` (default 3000)
 
 ## Behavior
 - The app looks for a mention followed immediately by `++` (example: `@alex++ great job`).
 - You can award multiple users at once, e.g. `@alex++ @sam++ for jumping in` (reason applies to all).
+- Self-awards are rejected unless `ALLOW_SELF_AWARD=true`.
+- Awards are rate-limited per giver (`AWARD_RATE_LIMIT_MAX` per `AWARD_RATE_LIMIT_WINDOW_MS`).
 - Replies in-thread when the message is in a thread; otherwise replies in-channel.
 - Records giver and receiver in `point_events` and maintains totals in `points`.
  - `/points` shows a top-10 leaderboard, `/points @user` shows a single user's total.

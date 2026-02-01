@@ -30,3 +30,14 @@ CREATE TABLE IF NOT EXISTS points (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (team_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS processed_awards (
+  id BIGSERIAL PRIMARY KEY,
+  team_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  message_ts TEXT NOT NULL,
+  giver_id TEXT NOT NULL,
+  receiver_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (team_id, channel_id, message_ts, giver_id, receiver_id)
+);

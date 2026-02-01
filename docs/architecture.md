@@ -22,7 +22,7 @@ flowchart TD
 ### OAuth install
 1. User visits `/slack/install`.
 2. Slack redirects to `/slack/oauth_redirect` after authorization.
-3. Installation data is stored in Postgres.
+3. Installation data is encrypted and stored in Postgres.
 
 ### Award points
 1. Slack sends a message event to `/slack/events`.
@@ -37,7 +37,8 @@ flowchart TD
 3. The app responds with results.
 
 ## Data model
-- `slack_installations`: OAuth install data (JSON).
+- `slack_installations`: OAuth install data (encrypted JSON payload).
+- `processed_awards`: idempotency records for message awards.
 - `slack_oauth_states`: OAuth state verification data with TTL.
 - `point_events`: audit trail of awards (giver, receiver, reason).
 - `points`: aggregated totals per team/user.

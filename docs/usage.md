@@ -6,6 +6,8 @@
    - `SLACK_CLIENT_SECRET`
    - `SLACK_SIGNING_SECRET`
    - `SLACK_STATE_SECRET`
+   - `INSTALLATION_ENCRYPTION_KEY` (32-byte base64 or 64-char hex)
+   - Generate with `openssl rand -base64 32` or `openssl rand -hex 32`
 2. Start services:
    ```bash
    docker compose up --build
@@ -45,6 +47,7 @@
   - `@alex++ great job`
 - Multiple users:
   - `@alex++ @sam++ thanks for jumping in`
+- Self-awards are rejected unless `ALLOW_SELF_AWARD=true`.
 
 ## Querying points
 - Leaderboard (top 10): `/points`

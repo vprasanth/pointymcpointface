@@ -1,4 +1,104 @@
+const crypto = require('crypto');
+
 const DEFAULT_STATE_TTL_MS = 10 * 60 * 1000;
+const INSTALLATION_ENCRYPTION_ALG = 'aes-256-gcm';
+const INSTALLATION_ENCRYPTION_VERSION = 1;
+let cachedEncryptionKey;
+
+function loadEncryptionKey() {
+  if (cachedEncryptionKey) {
+    return cachedEncryptionKey;
+  }
+
+  const rawKey = (process.env.INSTALLATION_ENCRYPTION_KEY || '').trim();
+  if (!rawKey) {
+    throw new Error('INSTALLATION_ENCRYPTION_KEY is required');
+  }
+
+  if (/^[0-9a-fA-F]{64}$/.test(rawKey)) {
+    cachedEncryptionKey = Buffer.from(rawKey, 'hex');
+    return cachedEncryptionKey;
+  }
+
+  const base64Key = Buffer.from(rawKey, 'base64');
+  if (base64Key.length === 32) {
+    cachedEncryptionKey = base64Key;
+    return cachedEncryptionKey;
+  }
+
+  throw new Error('INSTALLATION_ENCRYPTION_KEY must be 32 bytes (base64) or 64 hex chars');
+}
+
+function isEncryptedInstallation(payload) {
+  return Boolean(
+    payload &&
+      typeof payload === 'object' &&
+      typeof payload.ciphertext === 'string' &&
+      typeof payload.iv === 'string' &&
+      typeof payload.tag === 'string' &&
+      typeof payload.alg === 'string'
+  );
+}
+
+function encryptInstallation(installation) {
+  const key = loadEncryptionKey();
+  const iv = crypto.randomBytes(12);
+  const plaintext = Buffer.from(JSON.stringify(installation), 'utf8');
+  const cipher = crypto.createCipheriv(INSTALLATION_ENCRYPTION_ALG, key, iv);
+  const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const tag = cipher.getAuthTag();
+
+  return {
+    v: INSTALLATION_ENCRYPTION_VERSION,
+    alg: INSTALLATION_ENCRYPTION_ALG,
+    iv: iv.toString('base64'),
+    tag: tag.toString('base64'),
+    ciphertext: ciphertext.toString('base64')
+  };
+}
+
+function decryptInstallation(payload) {
+  if (!isEncryptedInstallation(payload)) {
+    return payload;
+  }
+
+  if (payload.alg !== INSTALLATION_ENCRYPTION_ALG) {
+    throw new Error(`Unsupported installation encryption algorithm: ${payload.alg}`);
+  }
+
+  const key = loadEncryptionKey();
+  const iv = Buffer.from(payload.iv, 'base64');
+  const tag = Buffer.from(payload.tag, 'base64');
+  const ciphertext = Buffer.from(payload.ciphertext, 'base64');
+  const decipher = crypto.createDecipheriv(INSTALLATION_ENCRYPTION_ALG, key, iv);
+  decipher.setAuthTag(tag);
+  const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  return JSON.parse(plaintext.toString('utf8'));
+}
+
+function redactInstallation(installation) {
+  if (!installation || typeof installation !== 'object') {
+    return { hasInstallation: false };
+  }
+
+  const teamId = installation.team && installation.team.id;
+  const enterpriseId = installation.enterprise && installation.enterprise.id;
+  const bot = installation.bot || {};
+  const user = installation.user || {};
+
+  return {
+    hasInstallation: true,
+    teamId: teamId || '',
+    enterpriseId: enterpriseId || '',
+    isEnterpriseInstall: Boolean(installation.isEnterpriseInstall),
+    appId: installation.appId || installation.app_id || null,
+    botId: bot.id || null,
+    botUserId: bot.userId || bot.user_id || null,
+    userId: user.id || null,
+    hasBotToken: Boolean(bot.token),
+    hasUserToken: Boolean(user.token)
+  };
+}
 
 function normalizeId(value) {
   return value || '';
@@ -57,6 +157,19 @@ async function ensureSchema(pool) {
       PRIMARY KEY (team_id, user_id)
     );
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS processed_awards (
+      id BIGSERIAL PRIMARY KEY,
+      team_id TEXT NOT NULL,
+      channel_id TEXT NOT NULL,
+      message_ts TEXT NOT NULL,
+      giver_id TEXT NOT NULL,
+      receiver_id TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (team_id, channel_id, message_ts, giver_id, receiver_id)
+    );
+  `);
 }
 
 function createInstallationStore(pool, lifecycle) {
@@ -65,6 +178,7 @@ function createInstallationStore(pool, lifecycle) {
       const teamId = normalizeId(installation.team && installation.team.id);
       const enterpriseId = normalizeId(installation.enterprise && installation.enterprise.id);
       const isEnterpriseInstall = Boolean(installation.isEnterpriseInstall);
+      const encryptedInstallation = encryptInstallation(installation);
 
       await pool.query(
         `
@@ -73,14 +187,14 @@ function createInstallationStore(pool, lifecycle) {
         ON CONFLICT (team_id, enterprise_id, is_enterprise_install)
         DO UPDATE SET install_data = EXCLUDED.install_data, installed_at = NOW()
         `,
-        [teamId, enterpriseId, isEnterpriseInstall, installation]
+        [teamId, enterpriseId, isEnterpriseInstall, encryptedInstallation]
       );
 
       await safeEmit(lifecycle, 'oauth.installation.stored', {
         teamId,
         enterpriseId,
         isEnterpriseInstall,
-        installation
+        installation: redactInstallation(installation)
       });
     },
 
@@ -105,7 +219,23 @@ function createInstallationStore(pool, lifecycle) {
         throw new Error('Installation data not found');
       }
 
-      return result.rows[0].install_data;
+      const storedInstallation = result.rows[0].install_data;
+      if (!isEncryptedInstallation(storedInstallation)) {
+        const encrypted = encryptInstallation(storedInstallation);
+        await pool.query(
+          `
+          UPDATE slack_installations
+          SET install_data = $4, installed_at = NOW()
+          WHERE team_id = $1
+            AND enterprise_id = $2
+            AND is_enterprise_install = $3
+          `,
+          [teamId, enterpriseId, isEnterpriseInstall, encrypted]
+        );
+        return storedInstallation;
+      }
+
+      return decryptInstallation(storedInstallation);
     },
 
     async deleteInstallation(query) {
@@ -191,9 +321,41 @@ function createStateStore(pool, lifecycle) {
   };
 }
 
-async function incrementPoints(pool, { teamId, giverId, receiverId, reason }) {
+async function incrementPoints(pool, { teamId, channelId, messageTs, giverId, receiverId, reason }) {
   if (!teamId) {
     throw new Error('Missing team id');
+  }
+
+  if (!channelId || !messageTs) {
+    throw new Error('Missing message identifiers');
+  }
+
+  const dedupeResult = await pool.query(
+    `
+    INSERT INTO processed_awards (team_id, channel_id, message_ts, giver_id, receiver_id)
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT DO NOTHING
+    RETURNING id
+    `,
+    [teamId, channelId, messageTs, giverId, receiverId]
+  );
+
+  if (!dedupeResult.rows.length) {
+    const current = await pool.query(
+      `
+      SELECT points
+      FROM points
+      WHERE team_id = $1 AND user_id = $2
+      LIMIT 1
+      `,
+      [teamId, receiverId]
+    );
+    return {
+      points: current.rows.length ? current.rows[0].points : 0,
+      eventId: null,
+      eventCreatedAt: null,
+      deduped: true
+    };
   }
 
   const eventResult = await pool.query(
@@ -219,7 +381,8 @@ async function incrementPoints(pool, { teamId, giverId, receiverId, reason }) {
   return {
     points: result.rows[0].points,
     eventId: eventResult.rows[0].id,
-    eventCreatedAt: eventResult.rows[0].created_at
+    eventCreatedAt: eventResult.rows[0].created_at,
+    deduped: false
   };
 }
 

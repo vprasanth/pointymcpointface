@@ -33,7 +33,16 @@ Payload:
 - `teamId`
 - `enterpriseId`
 - `isEnterpriseInstall`
-- `installation`
+- `installation` (redacted summary, no tokens)
+  - `teamId`
+  - `enterpriseId`
+  - `isEnterpriseInstall`
+  - `appId`
+  - `botId`
+  - `botUserId`
+  - `userId`
+  - `hasBotToken`
+  - `hasUserToken`
 
 ### `oauth.installation.deleted`
 Emitted after an installation is deleted.
