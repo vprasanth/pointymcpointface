@@ -1,5 +1,5 @@
 {
-  "name": "clippy-slack-points",
+  "name": "pointymcpointface",
   "dockerComposeFile": [
     "../docker-compose.yml"
   ],

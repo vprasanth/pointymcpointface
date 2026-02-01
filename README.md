@@ -1,4 +1,4 @@
-# Clippy Slack Points
+# PointyMcPointface
 
 Award points by typing `@user++` (no space) and an optional reason. The app increments that user's points, records who gave them, and replies with the updated total.
 

@@ -14,14 +14,14 @@ services:
       - .env
     environment:
       PORT: "3000"
-      DATABASE_URL: "postgres://postgres:postgres@db:5432/clippy"
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/pointymcpointface"
     depends_on:
       - db
 
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: clippy
+      POSTGRES_DB: pointymcpointface
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
