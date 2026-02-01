@@ -4,6 +4,18 @@ function normalizeId(value) {
   return value || '';
 }
 
+async function safeEmit(lifecycle, eventName, payload) {
+  if (!lifecycle || typeof lifecycle.emit !== 'function') {
+    return;
+  }
+
+  try {
+    await lifecycle.emit(eventName, payload);
+  } catch (error) {
+    console.error(`Lifecycle listener failed for ${eventName}`, error);
+  }
+}
+
 async function ensureSchema(pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS slack_installations (
@@ -47,7 +59,7 @@ async function ensureSchema(pool) {
   `);
 }
 
-function createInstallationStore(pool) {
+function createInstallationStore(pool, lifecycle) {
   return {
     async storeInstallation(installation) {
       const teamId = normalizeId(installation.team && installation.team.id);
@@ -63,6 +75,13 @@ function createInstallationStore(pool) {
         `,
         [teamId, enterpriseId, isEnterpriseInstall, installation]
       );
+
+      await safeEmit(lifecycle, 'oauth.installation.stored', {
+        teamId,
+        enterpriseId,
+        isEnterpriseInstall,
+        installation
+      });
     },
 
     async fetchInstallation(query) {
@@ -103,11 +122,17 @@ function createInstallationStore(pool) {
         `,
         [teamId, enterpriseId, isEnterpriseInstall]
       );
+
+      await safeEmit(lifecycle, 'oauth.installation.deleted', {
+        teamId,
+        enterpriseId,
+        isEnterpriseInstall
+      });
     }
   };
 }
 
-function createStateStore(pool) {
+function createStateStore(pool, lifecycle) {
   return {
     async storeState(state, installUrlOptions) {
       const ttlMs = Number.parseInt(process.env.OAUTH_STATE_TTL_MS || '', 10) || DEFAULT_STATE_TTL_MS;
@@ -123,6 +148,12 @@ function createStateStore(pool) {
         `,
         [state, options, expiresAt]
       );
+
+      await safeEmit(lifecycle, 'oauth.state.stored', {
+        state,
+        expiresAt,
+        installOptions: options
+      });
 
       return state;
     },
@@ -149,6 +180,12 @@ function createStateStore(pool) {
 
       await pool.query('DELETE FROM slack_oauth_states WHERE state = $1', [state]);
 
+      await safeEmit(lifecycle, 'oauth.state.verified', {
+        state,
+        expiresAt,
+        installOptions
+      });
+
       return installOptions || {};
     }
   };
@@ -159,10 +196,11 @@ async function incrementPoints(pool, { teamId, giverId, receiverId, reason }) {
     throw new Error('Missing team id');
   }
 
-  await pool.query(
+  const eventResult = await pool.query(
     `
     INSERT INTO point_events (team_id, giver_id, receiver_id, reason)
     VALUES ($1, $2, $3, $4)
+    RETURNING id, created_at
     `,
     [teamId, giverId, receiverId, reason]
   );
@@ -178,7 +216,11 @@ async function incrementPoints(pool, { teamId, giverId, receiverId, reason }) {
     [teamId, receiverId]
   );
 
-  return result.rows[0].points;
+  return {
+    points: result.rows[0].points,
+    eventId: eventResult.rows[0].id,
+    eventCreatedAt: eventResult.rows[0].created_at
+  };
 }
 
 async function getPoints(pool, { teamId, userId }) {

@@ -10,6 +10,8 @@ const {
   getPoints,
   getLeaderboard
 } = require('./store');
+const { createLifecycle } = require('./lifecycle');
+const { registerListeners } = require('./listeners');
 
 const {
   DATABASE_URL,
@@ -36,6 +38,9 @@ const pool = new Pool({
   ssl: sslEnabled ? { rejectUnauthorized: false } : undefined
 });
 
+const lifecycle = createLifecycle({ logger: console });
+registerListeners(lifecycle);
+
 const scopes = (SLACK_SCOPES || 'chat:write,channels:history,groups:history,im:history,mpim:history,commands')
   .split(',')
   .map((scope) => scope.trim())
@@ -47,8 +52,8 @@ const receiver = new ExpressReceiver({
   clientSecret: SLACK_CLIENT_SECRET,
   stateSecret: SLACK_STATE_SECRET,
   scopes,
-  installationStore: createInstallationStore(pool),
-  stateStore: createStateStore(pool)
+  installationStore: createInstallationStore(pool, lifecycle),
+  stateStore: createStateStore(pool, lifecycle)
 });
 
 receiver.router.get('/health', (req, res) => {
@@ -91,6 +96,14 @@ function parseMentions(text) {
   return { recipients, reason };
 }
 
+async function emitLifecycle(eventName, payload) {
+  try {
+    await lifecycle.emit(eventName, payload);
+  } catch (error) {
+    console.error(`Failed to emit lifecycle event ${eventName}`, error);
+  }
+}
+
 app.message(async ({ message, say, context }) => {
   if (!message || !message.text) {
     return;
@@ -108,17 +121,43 @@ app.message(async ({ message, say, context }) => {
   const { recipients, reason } = parsed;
   const giverId = message.user;
   const teamId = context.teamId || message.team;
+  const channelId = message.channel;
+  const messageTs = message.ts;
+  const threadTs = message.thread_ts || null;
+
+  void emitLifecycle('points.award.received', {
+    teamId,
+    channelId,
+    messageTs,
+    threadTs,
+    giverId,
+    recipients,
+    reason
+  });
 
   try {
     const results = [];
     for (const receiverId of recipients) {
-      const points = await incrementPoints(pool, {
+      const { points, eventId, eventCreatedAt } = await incrementPoints(pool, {
         teamId,
         giverId,
         receiverId,
         reason
       });
       results.push({ receiverId, points });
+
+      void emitLifecycle('points.awarded', {
+        teamId,
+        channelId,
+        messageTs,
+        threadTs,
+        giverId,
+        receiverId,
+        points,
+        reason,
+        eventId,
+        eventCreatedAt
+      });
     }
 
     let response;
@@ -143,6 +182,16 @@ app.message(async ({ message, say, context }) => {
     await say(payload);
   } catch (error) {
     console.error('Failed to record points', error);
+    void emitLifecycle('points.award.failed', {
+      teamId,
+      channelId,
+      messageTs,
+      threadTs,
+      giverId,
+      recipients,
+      reason,
+      errorMessage: error.message
+    });
   }
 });
 
@@ -156,18 +205,41 @@ app.command('/points', async ({ command, ack, respond }) => {
     const targetId = mentionMatch[1];
     const points = await getPoints(pool, { teamId: command.team_id, userId: targetId });
     await respond({ text: `<@${targetId}> has ${points} points.` });
+    void emitLifecycle('points.query', {
+      queryType: 'user',
+      teamId: command.team_id,
+      channelId: command.channel_id,
+      requesterId: command.user_id,
+      targetUserId: targetId,
+      points
+    });
     return;
   }
 
   if (text.toLowerCase() === 'me' || text.toLowerCase() === 'mine') {
     const points = await getPoints(pool, { teamId: command.team_id, userId: command.user_id });
     await respond({ text: `<@${command.user_id}> has ${points} points.` });
+    void emitLifecycle('points.query', {
+      queryType: 'self',
+      teamId: command.team_id,
+      channelId: command.channel_id,
+      requesterId: command.user_id,
+      targetUserId: command.user_id,
+      points
+    });
     return;
   }
 
   const leaderboard = await getLeaderboard(pool, { teamId: command.team_id, limit: 10 });
   if (!leaderboard.length) {
     await respond({ text: 'No points yet.' });
+    void emitLifecycle('points.query', {
+      queryType: 'leaderboard',
+      teamId: command.team_id,
+      channelId: command.channel_id,
+      requesterId: command.user_id,
+      leaderboard: []
+    });
     return;
   }
 
@@ -176,6 +248,13 @@ app.command('/points', async ({ command, ack, respond }) => {
   );
 
   await respond({ text: `Leaderboard:\\n${lines.join('\\n')}` });
+  void emitLifecycle('points.query', {
+    queryType: 'leaderboard',
+    teamId: command.team_id,
+    channelId: command.channel_id,
+    requesterId: command.user_id,
+    leaderboard
+  });
 });
 
 (async () => {
@@ -183,4 +262,5 @@ app.command('/points', async ({ command, ack, respond }) => {
   const port = Number.parseInt(PORT || '', 10) || 3000;
   await app.start(port);
   console.log(`Slack app is running on port ${port}`);
+  await emitLifecycle('app.started', { port });
 })();

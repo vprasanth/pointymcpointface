@@ -71,5 +71,8 @@ Optional:
 - Records giver and receiver in `point_events` and maintains totals in `points`.
  - `/points` shows a top-10 leaderboard, `/points @user` shows a single user's total.
 
+## Lifecycle hooks
+Add listeners in `src/listeners.js`. See `docs/lifecycle.md` for the event catalog and payloads.
+
 ## Devcontainer
 Open this repo in VS Code and choose “Reopen in Container”. It uses the same `docker-compose.yml` and runs `npm install` automatically.

@@ -7,6 +7,7 @@ The system is a Slack app built with Slack Bolt (Node.js) and a Postgres databas
 - Slack app (OAuth + Events + Slash Commands)
 - Node.js app server using Slack Bolt + ExpressReceiver
 - Postgres database
+- Lifecycle event bus (in-process pub/sub)
 
 ## Diagram
 ```mermaid
