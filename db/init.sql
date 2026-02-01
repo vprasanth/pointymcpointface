@@ -41,3 +41,18 @@ CREATE TABLE IF NOT EXISTS processed_awards (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (team_id, channel_id, message_ts, giver_id, receiver_id)
 );
+
+CREATE TABLE IF NOT EXISTS lifecycle_outbox (
+  id BIGSERIAL PRIMARY KEY,
+  event_name TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT,
+  next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS lifecycle_outbox_status_idx
+ON lifecycle_outbox (status, next_attempt_at);

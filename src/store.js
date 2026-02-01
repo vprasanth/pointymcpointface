@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { enqueueLifecycleEvent } = require('./outbox');
 
 const DEFAULT_STATE_TTL_MS = 10 * 60 * 1000;
 const INSTALLATION_ENCRYPTION_ALG = 'aes-256-gcm';
@@ -104,15 +105,15 @@ function normalizeId(value) {
   return value || '';
 }
 
-async function safeEmit(lifecycle, eventName, payload) {
-  if (!lifecycle || typeof lifecycle.emit !== 'function') {
+async function safeEnqueue(pool, eventName, payload) {
+  if (!pool) {
     return;
   }
 
   try {
-    await lifecycle.emit(eventName, payload);
+    await enqueueLifecycleEvent(pool, eventName, payload);
   } catch (error) {
-    console.error(`Lifecycle listener failed for ${eventName}`, error);
+    console.error(`Failed to enqueue lifecycle event ${eventName}`, error);
   }
 }
 
@@ -170,6 +171,25 @@ async function ensureSchema(pool) {
       UNIQUE (team_id, channel_id, message_ts, giver_id, receiver_id)
     );
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS lifecycle_outbox (
+      id BIGSERIAL PRIMARY KEY,
+      event_name TEXT NOT NULL,
+      payload JSONB NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      attempts INTEGER NOT NULL DEFAULT 0,
+      last_error TEXT,
+      next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS lifecycle_outbox_status_idx
+    ON lifecycle_outbox (status, next_attempt_at);
+  `);
 }
 
 function createInstallationStore(pool, lifecycle) {
@@ -190,7 +210,7 @@ function createInstallationStore(pool, lifecycle) {
         [teamId, enterpriseId, isEnterpriseInstall, encryptedInstallation]
       );
 
-      await safeEmit(lifecycle, 'oauth.installation.stored', {
+      await safeEnqueue(pool, 'oauth.installation.stored', {
         teamId,
         enterpriseId,
         isEnterpriseInstall,
@@ -253,7 +273,7 @@ function createInstallationStore(pool, lifecycle) {
         [teamId, enterpriseId, isEnterpriseInstall]
       );
 
-      await safeEmit(lifecycle, 'oauth.installation.deleted', {
+      await safeEnqueue(pool, 'oauth.installation.deleted', {
         teamId,
         enterpriseId,
         isEnterpriseInstall
@@ -279,7 +299,7 @@ function createStateStore(pool, lifecycle) {
         [state, options, expiresAt]
       );
 
-      await safeEmit(lifecycle, 'oauth.state.stored', {
+      await safeEnqueue(pool, 'oauth.state.stored', {
         state,
         expiresAt,
         installOptions: options
@@ -310,7 +330,7 @@ function createStateStore(pool, lifecycle) {
 
       await pool.query('DELETE FROM slack_oauth_states WHERE state = $1', [state]);
 
-      await safeEmit(lifecycle, 'oauth.state.verified', {
+      await safeEnqueue(pool, 'oauth.state.verified', {
         state,
         expiresAt,
         installOptions

@@ -19,6 +19,16 @@ function registerListeners(lifecycle) {
 - `lifecycle.off(eventName, handler)`
 - `lifecycle.emit(eventName, payload)`
 
+## Delivery model
+Lifecycle events are written to a Postgres outbox and delivered asynchronously by a worker. Delivery is at-least-once, so handlers should be idempotent.
+
+Control the worker with:
+- `OUTBOX_WORKER_ENABLED` (default true)
+- `OUTBOX_POLL_INTERVAL_MS` (default 1000)
+- `OUTBOX_BATCH_SIZE` (default 20)
+- `OUTBOX_MAX_ATTEMPTS` (default 10)
+- `OUTBOX_BACKOFF_MS` (default 30000)
+
 ## Event catalog
 ### `app.started`
 Emitted after the app server starts.
@@ -119,3 +129,12 @@ Payload:
 - `targetUserId` (only for `user`/`self` queries)
 - `points` (only for `user`/`self` queries)
 - `leaderboard` (only for leaderboard queries)
+
+## Mock integration example (Lattice praise)
+To demonstrate how lifecycle hooks can power integrations, a mock Lattice plugin is included in `src/plugins/latticeMock.js`.
+
+Enable it by setting:
+- `LATTICE_MOCK_ENABLED=true`
+- `LATTICE_MOCK_WEBHOOK_URL=` (optional)
+
+When enabled, the plugin listens to `points.awarded` and either logs the payload or posts it to the webhook URL.

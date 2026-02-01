@@ -71,6 +71,11 @@ Optional:
 - `AWARD_MAX_RECIPIENTS` (default 5)
 - `AWARD_RATE_LIMIT_MAX` (default 5)
 - `AWARD_RATE_LIMIT_WINDOW_MS` (default 60000)
+- `OUTBOX_WORKER_ENABLED` (default true)
+- `OUTBOX_POLL_INTERVAL_MS` (default 1000)
+- `OUTBOX_BATCH_SIZE` (default 20)
+- `OUTBOX_MAX_ATTEMPTS` (default 10)
+- `OUTBOX_BACKOFF_MS` (default 30000)
 - `PORT` (default 3000)
 
 ## Behavior
@@ -83,7 +88,7 @@ Optional:
  - `/points` shows a top-10 leaderboard, `/points @user` shows a single user's total.
 
 ## Lifecycle hooks
-Add listeners in `src/listeners.js`. See `docs/lifecycle.md` for the event catalog and payloads.
+Add listeners in `src/listeners.js`. Events are delivered asynchronously from the outbox (at-least-once). See `docs/lifecycle.md` for the event catalog and payloads.
 
 ## Devcontainer
 Open this repo in VS Code and choose “Reopen in Container”. It uses the same `docker-compose.yml` and runs `npm install` automatically.

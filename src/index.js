@@ -11,6 +11,7 @@ const {
   getLeaderboard
 } = require('./store');
 const { createLifecycle } = require('./lifecycle');
+const { enqueueLifecycleEvent, startOutboxWorker } = require('./outbox');
 const { registerListeners } = require('./listeners');
 
 const {
@@ -28,7 +29,12 @@ const {
   ALLOW_SELF_AWARD,
   AWARD_MAX_RECIPIENTS,
   AWARD_RATE_LIMIT_MAX,
-  AWARD_RATE_LIMIT_WINDOW_MS
+  AWARD_RATE_LIMIT_WINDOW_MS,
+  OUTBOX_WORKER_ENABLED,
+  OUTBOX_POLL_INTERVAL_MS,
+  OUTBOX_BATCH_SIZE,
+  OUTBOX_MAX_ATTEMPTS,
+  OUTBOX_BACKOFF_MS
 } = process.env;
 
 if (!DATABASE_URL) {
@@ -92,6 +98,11 @@ function parseIntEnv(value, fallback) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function parseIntOptional(value) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 const maxRecipientsPerMessage = parseIntEnv(AWARD_MAX_RECIPIENTS, 5);
 const rateLimitMax = parseIntEnv(AWARD_RATE_LIMIT_MAX, 5);
 const rateLimitWindowMs = parseIntEnv(AWARD_RATE_LIMIT_WINDOW_MS, 60000);
@@ -150,9 +161,9 @@ function parseMentions(text) {
 
 async function emitLifecycle(eventName, payload) {
   try {
-    await lifecycle.emit(eventName, payload);
+    await enqueueLifecycleEvent(pool, eventName, payload);
   } catch (error) {
-    console.error(`Failed to emit lifecycle event ${eventName}`, error);
+    console.error(`Failed to enqueue lifecycle event ${eventName}`, error);
   }
 }
 
@@ -338,6 +349,16 @@ app.command('/points', async ({ command, ack, respond }) => {
 
 (async () => {
   await ensureSchema(pool);
+  startOutboxWorker({
+    pool,
+    lifecycle,
+    logger: console,
+    enabled: String(OUTBOX_WORKER_ENABLED ?? 'true').toLowerCase() === 'true',
+    pollIntervalMs: parseIntOptional(OUTBOX_POLL_INTERVAL_MS),
+    batchSize: parseIntOptional(OUTBOX_BATCH_SIZE),
+    maxAttempts: parseIntOptional(OUTBOX_MAX_ATTEMPTS),
+    backoffMs: parseIntOptional(OUTBOX_BACKOFF_MS)
+  });
   const port = Number.parseInt(PORT || '', 10) || 3000;
   await app.start(port);
   console.log(`Slack app is running on port ${port}`);

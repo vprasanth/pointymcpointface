@@ -15,6 +15,9 @@ flowchart TD
   Slack[Slack Workspace] -->|OAuth Install| App[Node.js + Bolt App]
   Slack -->|Message Events / Slash Commands| App
   App -->|Read/Write| DB[(Postgres)]
+  App -->|Enqueue lifecycle events| DB
+  App -->|Outbox worker| DB
+  App -->|Lifecycle hooks| App
   App -->|Replies| Slack
 ```
 
@@ -30,6 +33,7 @@ flowchart TD
 3. A `point_events` row is inserted for each recipient.
 4. The `points` aggregate is incremented.
 5. The app replies with updated totals.
+6. Lifecycle events are enqueued in the outbox and delivered asynchronously to listeners.
 
 ### Query points
 1. User runs `/points` (optionally with `@user` or `me`).
@@ -38,6 +42,7 @@ flowchart TD
 
 ## Data model
 - `slack_installations`: OAuth install data (encrypted JSON payload).
+- `lifecycle_outbox`: persisted lifecycle events for asynchronous delivery.
 - `processed_awards`: idempotency records for message awards.
 - `slack_oauth_states`: OAuth state verification data with TTL.
 - `point_events`: audit trail of awards (giver, receiver, reason).
