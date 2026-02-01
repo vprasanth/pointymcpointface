@@ -486,6 +486,22 @@ async function getLeaderboardForPeriod(pool, { teamId, limit, since }) {
   return result.rows;
 }
 
+async function getAwardHistory(pool, { teamId, userId, limit }) {
+  const safeLimit = Number.isInteger(limit) ? limit : 5;
+  const result = await pool.query(
+    `
+    SELECT giver_id, receiver_id, reason, created_at
+    FROM point_events
+    WHERE team_id = $1 AND receiver_id = $2
+    ORDER BY created_at DESC
+    LIMIT $3
+    `,
+    [teamId, userId, safeLimit]
+  );
+
+  return result.rows;
+}
+
 module.exports = {
   ensureSchema,
   createInstallationStore,
@@ -493,5 +509,6 @@ module.exports = {
   incrementPoints,
   getPoints,
   getLeaderboard,
-  getLeaderboardForPeriod
+  getLeaderboardForPeriod,
+  getAwardHistory
 };

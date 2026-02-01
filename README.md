@@ -86,7 +86,7 @@ Optional:
 - Awards are rate-limited per giver (`AWARD_RATE_LIMIT_MAX` per `AWARD_RATE_LIMIT_WINDOW_MS`).
 - Replies in-thread when the message is in a thread; otherwise replies in-channel.
 - Records giver and receiver in `point_events` and maintains totals in `points`.
-- `/points` shows a top-10 leaderboard, `/points leaderboard week|month` scopes it to recent activity, `/points @user` shows a single user's total, and `/points give @user reason` awards points.
+- `/points` shows a top-10 leaderboard, `/points leaderboard week|month` scopes it to recent activity, `/points history @user` shows recent awards, `/points @user` shows a single user's total, and `/points give @user reason` awards points.
 
 ## Useful npm scripts
 - `npm run dev` - start the app in watch mode

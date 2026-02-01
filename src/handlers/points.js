@@ -1,6 +1,17 @@
-const { incrementPoints, getPoints, getLeaderboard, getLeaderboardForPeriod } = require('../store');
+const {
+  incrementPoints,
+  getPoints,
+  getLeaderboard,
+  getLeaderboardForPeriod,
+  getAwardHistory
+} = require('../store');
 const { createRateLimiter, formatReasonForDisplay } = require('../awards');
-const { parseGiveCommand, parseLeaderboardCommand, parseSimpleLookup } = require('../commands/points');
+const {
+  parseGiveCommand,
+  parseHistoryCommand,
+  parseLeaderboardCommand,
+  parseSimpleLookup
+} = require('../commands/points');
 const logger = require('../logger');
 
 function registerPointsHandler(app, { pool, emitLifecycle, config }) {
@@ -182,6 +193,70 @@ function registerPointsHandler(app, { pool, emitLifecycle, config }) {
         requesterId: command.user_id,
         period: leaderboardCmd.period || null,
         leaderboard
+      });
+      return;
+    }
+
+    const historyCmd = parseHistoryCommand(text);
+    if (historyCmd) {
+      if (historyCmd.error) {
+        await respond({ text: 'Usage: /points history @user' });
+        logger.info({
+          teamId: command.team_id,
+          channelId: command.channel_id,
+          requesterId: command.user_id
+        }, 'History command missing user');
+        return;
+      }
+
+      const targetUserId = historyCmd.self ? command.user_id : historyCmd.userId;
+      const history = await getAwardHistory(pool, {
+        teamId: command.team_id,
+        userId: targetUserId,
+        limit: 5
+      });
+
+      if (!history.length) {
+        await respond({ text: `No recent awards for <@${targetUserId}>.` });
+        logger.info({
+          teamId: command.team_id,
+          channelId: command.channel_id,
+          requesterId: command.user_id,
+          targetUserId
+        }, 'History queried (empty)');
+        void emitLifecycle('points.query', {
+          queryType: 'history',
+          teamId: command.team_id,
+          channelId: command.channel_id,
+          requesterId: command.user_id,
+          targetUserId,
+          history: []
+        });
+        return;
+      }
+
+      const lines = history.map((entry, index) => {
+        const date = new Date(entry.created_at).toISOString().slice(0, 10);
+        const reason = formatReasonForDisplay(entry.reason);
+        const detail = reason ? ` — ${reason}` : '';
+        return `${index + 1}. <@${entry.giver_id}>${detail} (${date})`;
+      });
+
+      await respond({ text: `Recent awards for <@${targetUserId}>:\n${lines.join('\n')}` });
+      logger.info({
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id,
+        targetUserId,
+        results: history.length
+      }, 'History queried');
+      void emitLifecycle('points.query', {
+        queryType: 'history',
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id,
+        targetUserId,
+        history
       });
       return;
     }

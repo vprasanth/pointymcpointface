@@ -55,6 +55,7 @@
 - Leaderboard this month: `/points leaderboard month`
 - Specific user: `/points @alex`
 - Yourself: `/points me`
+- Recent awards: `/points history @alex`
 - Give points: `/points give @alex for jumping in`
 
 ## Lifecycle hooks
