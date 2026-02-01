@@ -146,8 +146,9 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
         response = `Points awarded: ${summary}.`;
       }
 
-      if (reason) {
-        response += ` Most recently for: ${reason}`;
+      let displayReason = reason ? formatReasonForDisplay(reason) : reason;
+      if (displayReason) {
+        response += ` Most recently for: ${displayReason}`;
       }
 
       const payload = { text: response };
@@ -179,4 +180,13 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
   });
 }
 
-module.exports = { registerAwardHandler };
+function formatReasonForDisplay(reason) {
+  if (!reason) {
+    return null;
+  }
+
+  const trimmed = reason.replace(/^\s*for\b\s*/i, '').trim();
+  return trimmed.length ? trimmed : null;
+}
+
+module.exports = { registerAwardHandler, formatReasonForDisplay };

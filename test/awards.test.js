@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { parseMentions, createRateLimiter } = require('../src/awards');
+const { formatReasonForDisplay } = require('../src/handlers/award');
 
 test('parseMentions returns null when no awards present', () => {
   const result = parseMentions('hello world');
@@ -43,4 +44,15 @@ test('rate limiter enforces max per window', () => {
 test('rate limiter is disabled when max is zero', () => {
   const check = createRateLimiter({ rateLimitMax: 0, rateLimitWindowMs: 1000 });
   assert.equal(check('T1', 'U1', 100).allowed, true);
+});
+
+test('formatReasonForDisplay trims leading for', () => {
+  assert.equal(formatReasonForDisplay('for helping'), 'helping');
+  assert.equal(formatReasonForDisplay('For   staying late'), 'staying late');
+  assert.equal(formatReasonForDisplay('  for   review'), 'review');
+});
+
+test('formatReasonForDisplay returns null when empty after trim', () => {
+  assert.equal(formatReasonForDisplay('for'), null);
+  assert.equal(formatReasonForDisplay('for   '), null);
 });
