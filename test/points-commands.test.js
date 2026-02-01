@@ -5,6 +5,7 @@ const {
   parseGiveCommand,
   parseHistoryCommand,
   parseLeaderboardCommand,
+  parseStatsCommand,
   parseSimpleLookup
 } = require('../src/commands/points');
 
@@ -45,4 +46,9 @@ test('parseHistoryCommand supports self or mention', () => {
   assert.deepEqual(parseHistoryCommand('history me'), { self: true });
   assert.deepEqual(parseHistoryCommand('history <@U123|alex>'), { userId: 'U123' });
   assert.equal(parseHistoryCommand('leaderboard'), null);
+});
+
+test('parseStatsCommand matches stats', () => {
+  assert.deepEqual(parseStatsCommand('stats'), {});
+  assert.equal(parseStatsCommand('stat'), null);
 });

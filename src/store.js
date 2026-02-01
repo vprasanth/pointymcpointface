@@ -502,6 +502,42 @@ async function getAwardHistory(pool, { teamId, userId, limit }) {
   return result.rows;
 }
 
+async function getStats(pool, { teamId, limit }) {
+  const safeLimit = Number.isInteger(limit) ? limit : 5;
+  const giversResult = await pool.query(
+    `
+    SELECT giver_id AS user_id,
+           COUNT(*)::int AS count,
+           MAX(created_at) AS last_awarded
+    FROM point_events
+    WHERE team_id = $1
+    GROUP BY giver_id
+    ORDER BY count DESC, last_awarded DESC
+    LIMIT $2
+    `,
+    [teamId, safeLimit]
+  );
+
+  const receiversResult = await pool.query(
+    `
+    SELECT receiver_id AS user_id,
+           COUNT(*)::int AS count,
+           MAX(created_at) AS last_awarded
+    FROM point_events
+    WHERE team_id = $1
+    GROUP BY receiver_id
+    ORDER BY count DESC, last_awarded DESC
+    LIMIT $2
+    `,
+    [teamId, safeLimit]
+  );
+
+  return {
+    givers: giversResult.rows.map((row) => ({ user_id: row.user_id, count: row.count })),
+    receivers: receiversResult.rows.map((row) => ({ user_id: row.user_id, count: row.count }))
+  };
+}
+
 module.exports = {
   ensureSchema,
   createInstallationStore,
@@ -510,5 +546,6 @@ module.exports = {
   getPoints,
   getLeaderboard,
   getLeaderboardForPeriod,
-  getAwardHistory
+  getAwardHistory,
+  getStats
 };

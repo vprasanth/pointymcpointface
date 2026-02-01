@@ -122,7 +122,7 @@ Payload:
 Emitted after a `/points` query completes.
 
 Payload:
-- `queryType` (`user`, `self`, `leaderboard`, or `history`)
+- `queryType` (`user`, `self`, `leaderboard`, `history`, or `stats`)
 - `teamId`
 - `channelId`
 - `requesterId`
@@ -130,6 +130,7 @@ Payload:
 - `points` (only for `user`/`self` queries)
 - `leaderboard` (only for leaderboard queries)
 - `history` (only for history queries)
+- `stats` (only for stats queries)
 
 ## Mock integration example (Lattice praise)
 To demonstrate how lifecycle hooks can power integrations, a mock Lattice plugin is included in `src/plugins/latticeMock.js`.

@@ -3,13 +3,15 @@ const {
   getPoints,
   getLeaderboard,
   getLeaderboardForPeriod,
-  getAwardHistory
+  getAwardHistory,
+  getStats
 } = require('../store');
 const { createRateLimiter, formatReasonForDisplay } = require('../awards');
 const {
   parseGiveCommand,
   parseHistoryCommand,
   parseLeaderboardCommand,
+  parseStatsCommand,
   parseSimpleLookup
 } = require('../commands/points');
 const logger = require('../logger');
@@ -257,6 +259,53 @@ function registerPointsHandler(app, { pool, emitLifecycle, config }) {
         requesterId: command.user_id,
         targetUserId,
         history
+      });
+      return;
+    }
+
+    const statsCmd = parseStatsCommand(text);
+    if (statsCmd) {
+      const stats = await getStats(pool, { teamId: command.team_id, limit: 5 });
+      if (!stats.givers.length && !stats.receivers.length) {
+        await respond({ text: 'No points yet.' });
+        logger.info({
+          teamId: command.team_id,
+          channelId: command.channel_id,
+          requesterId: command.user_id
+        }, 'Stats queried (empty)');
+        void emitLifecycle('points.query', {
+          queryType: 'stats',
+          teamId: command.team_id,
+          channelId: command.channel_id,
+          requesterId: command.user_id,
+          stats: { givers: [], receivers: [] }
+        });
+        return;
+      }
+
+      const giverLines = stats.givers.length
+        ? stats.givers.map((entry, index) => `${index + 1}. <@${entry.user_id}> — ${entry.count}`)
+        : ['No awards given yet.'];
+      const receiverLines = stats.receivers.length
+        ? stats.receivers.map((entry, index) => `${index + 1}. <@${entry.user_id}> — ${entry.count}`)
+        : ['No awards received yet.'];
+
+      await respond({
+        text: `Top givers:\n${giverLines.join('\n')}\n\nTop receivers:\n${receiverLines.join('\n')}`
+      });
+      logger.info({
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id,
+        givers: stats.givers.length,
+        receivers: stats.receivers.length
+      }, 'Stats queried');
+      void emitLifecycle('points.query', {
+        queryType: 'stats',
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id,
+        stats
       });
       return;
     }

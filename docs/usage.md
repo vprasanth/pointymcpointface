@@ -56,6 +56,7 @@
 - Specific user: `/points @alex`
 - Yourself: `/points me`
 - Recent awards: `/points history @alex`
+- Stats: `/points stats`
 - Give points: `/points give @alex for jumping in`
 
 ## Lifecycle hooks
