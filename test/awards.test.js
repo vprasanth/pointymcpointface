@@ -23,6 +23,13 @@ test('parseMentions supports space between mention and pluses', () => {
   assert.equal(result.reason, 'for jumping in');
 });
 
+test('parseMentions supports mentions with display labels', () => {
+  const result = parseMentions('<@U123|himashi99> ++ foes2');
+  assert.ok(result);
+  assert.deepEqual(result.recipients, ['U123']);
+  assert.equal(result.reason, 'foes2');
+});
+
 test('parseMentions handles reason-only whitespace', () => {
   const result = parseMentions('<@U999>++   ');
   assert.ok(result);

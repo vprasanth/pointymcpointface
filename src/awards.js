@@ -1,4 +1,4 @@
-const mentionRegex = /<@([A-Z0-9]+)>\s*\+\+/g;
+const mentionRegex = /<@([A-Z0-9]+)(?:\|[^>]+)?>\s*\+\+/g;
 
 function parseMentions(text) {
   mentionRegex.lastIndex = 0;
@@ -23,7 +23,7 @@ function parseMentions(text) {
     }
   }
 
-  const reasonText = text.replace(/<@([A-Z0-9]+)>\s*\+\+/g, '').trim();
+  const reasonText = text.replace(/<@([A-Z0-9]+)(?:\|[^>]+)?>\s*\+\+/g, '').trim();
   const reason = reasonText.length ? reasonText : null;
 
   return { recipients, reason };
