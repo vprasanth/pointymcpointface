@@ -59,5 +59,44 @@
 - Stats: `/points stats`
 - Give points: `/points give @alex for jumping in`
 
+## Example responses
+### Leaderboard
+```
+Leaderboard:
+1. @alex — 12
+2. @sam — 9
+3. @ravi — 7
+```
+
+### Weekly leaderboard
+```
+Leaderboard (last 7 days):
+1. @alex — 3
+2. @sam — 2
+```
+
+### History
+```
+Recent awards for @alex:
+1. @sam — helping onboard (2026-02-01)
+2. @ravi (2026-01-29)
+```
+
+### Stats
+```
+Top givers:
+1. @sam — 8
+2. @ravi — 6
+
+Top receivers:
+1. @alex — 10
+2. @himashi99 — 7
+```
+
+### Give command
+```
+@alex has 13 points. Most recently for: helping onboard
+```
+
 ## Lifecycle hooks
 Add listeners in `src/listeners.js`. See `docs/lifecycle.md` for the event catalog and payloads.
