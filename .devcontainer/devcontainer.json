@@ -1,0 +1,11 @@
+{
+  "name": "clippy-slack-points",
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "postCreateCommand": "npm install",
+  "forwardPorts": [3000]
+}

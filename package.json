@@ -1,0 +1,19 @@
+{
+  "name": "clippy-slack-points",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Slack app for awarding points with @user++",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@slack/bolt": "^4.0.0",
+    "dotenv": "^16.4.0",
+    "pg": "^8.11.3"
+  }
+}
