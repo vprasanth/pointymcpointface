@@ -1,6 +1,6 @@
-const { incrementPoints, getPoints, getLeaderboard } = require('../store');
+const { incrementPoints, getPoints, getLeaderboard, getLeaderboardForPeriod } = require('../store');
 const { createRateLimiter, formatReasonForDisplay } = require('../awards');
-const { parseGiveCommand, parseSimpleLookup } = require('../commands/points');
+const { parseGiveCommand, parseLeaderboardCommand, parseSimpleLookup } = require('../commands/points');
 const logger = require('../logger');
 
 function registerPointsHandler(app, { pool, emitLifecycle, config }) {
@@ -121,6 +121,68 @@ function registerPointsHandler(app, { pool, emitLifecycle, config }) {
         });
         await respond({ text: 'Unable to award points right now.' });
       }
+      return;
+    }
+
+    const leaderboardCmd = parseLeaderboardCommand(text);
+    if (leaderboardCmd) {
+      let leaderboard = [];
+      let label = 'Leaderboard';
+      if (leaderboardCmd.period) {
+        const now = Date.now();
+        const windowMs = leaderboardCmd.period === 'week'
+          ? 7 * 24 * 60 * 60 * 1000
+          : 30 * 24 * 60 * 60 * 1000;
+        const since = new Date(now - windowMs);
+        leaderboard = await getLeaderboardForPeriod(pool, {
+          teamId: command.team_id,
+          limit: 10,
+          since
+        });
+        label = leaderboardCmd.period === 'week' ? 'Leaderboard (last 7 days)' : 'Leaderboard (last 30 days)';
+      } else {
+        leaderboard = await getLeaderboard(pool, { teamId: command.team_id, limit: 10 });
+      }
+
+      if (!leaderboard.length) {
+        await respond({ text: 'No points yet.' });
+        logger.info({
+          teamId: command.team_id,
+          channelId: command.channel_id,
+          requesterId: command.user_id,
+          period: leaderboardCmd.period || 'all'
+        }, 'Leaderboard queried (empty)');
+        void emitLifecycle('points.query', {
+          queryType: 'leaderboard',
+          teamId: command.team_id,
+          channelId: command.channel_id,
+          requesterId: command.user_id,
+          period: leaderboardCmd.period || null,
+          leaderboard: []
+        });
+        return;
+      }
+
+      const lines = leaderboard.map(
+        (entry, index) => `${index + 1}. <@${entry.user_id}> — ${entry.points}`
+      );
+
+      await respond({ text: `${label}:\n${lines.join('\n')}` });
+      logger.info({
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id,
+        results: leaderboard.length,
+        period: leaderboardCmd.period || 'all'
+      }, 'Leaderboard queried');
+      void emitLifecycle('points.query', {
+        queryType: 'leaderboard',
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id,
+        period: leaderboardCmd.period || null,
+        leaderboard
+      });
       return;
     }
 

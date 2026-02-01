@@ -51,6 +51,8 @@
 
 ## Querying points
 - Leaderboard (top 10): `/points`
+- Leaderboard this week: `/points leaderboard week`
+- Leaderboard this month: `/points leaderboard month`
 - Specific user: `/points @alex`
 - Yourself: `/points me`
 - Give points: `/points give @alex for jumping in`

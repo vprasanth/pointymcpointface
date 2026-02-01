@@ -464,11 +464,34 @@ async function getLeaderboard(pool, { teamId, limit }) {
   return result.rows;
 }
 
+async function getLeaderboardForPeriod(pool, { teamId, limit, since }) {
+  const safeLimit = Number.isInteger(limit) ? limit : 10;
+  const result = await pool.query(
+    `
+    SELECT user_id, points
+    FROM (
+      SELECT receiver_id AS user_id,
+             COUNT(*)::int AS points,
+             MAX(created_at) AS last_awarded
+      FROM point_events
+      WHERE team_id = $1 AND created_at >= $2
+      GROUP BY receiver_id
+    ) summary
+    ORDER BY points DESC, last_awarded DESC
+    LIMIT $3
+    `,
+    [teamId, since, safeLimit]
+  );
+
+  return result.rows;
+}
+
 module.exports = {
   ensureSchema,
   createInstallationStore,
   createStateStore,
   incrementPoints,
   getPoints,
-  getLeaderboard
+  getLeaderboard,
+  getLeaderboardForPeriod
 };

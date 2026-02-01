@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const {
   parseGiveCommand,
+  parseLeaderboardCommand,
   parseSimpleLookup
 } = require('../src/commands/points');
 
@@ -29,4 +30,11 @@ test('parseSimpleLookup handles mention or self', () => {
 
   const self = parseSimpleLookup('me');
   assert.deepEqual(self, { self: true });
+});
+
+test('parseLeaderboardCommand accepts optional period', () => {
+  assert.deepEqual(parseLeaderboardCommand('leaderboard'), { period: null });
+  assert.deepEqual(parseLeaderboardCommand('leaderboard week'), { period: 'week' });
+  assert.deepEqual(parseLeaderboardCommand('leaderboard month'), { period: 'month' });
+  assert.equal(parseLeaderboardCommand('stats'), null);
 });
