@@ -29,6 +29,15 @@ function parseMentions(text) {
   return { recipients, reason };
 }
 
+function formatReasonForDisplay(reason) {
+  if (!reason) {
+    return null;
+  }
+
+  const trimmed = reason.replace(/^\s*for\b\s*/i, '').trim();
+  return trimmed.length ? trimmed : null;
+}
+
 function createRateLimiter({ rateLimitMax, rateLimitWindowMs }) {
   const rateLimitCache = new Map();
 
@@ -61,5 +70,6 @@ function createRateLimiter({ rateLimitMax, rateLimitWindowMs }) {
 
 module.exports = {
   parseMentions,
-  createRateLimiter
+  createRateLimiter,
+  formatReasonForDisplay
 };

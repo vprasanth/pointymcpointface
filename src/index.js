@@ -52,7 +52,7 @@ async function emitLifecycle(eventName, payload) {
 }
 
 registerAwardHandler(app, { pool, emitLifecycle, config, logger });
-registerPointsHandler(app, { pool, emitLifecycle });
+registerPointsHandler(app, { pool, emitLifecycle, config });
 
 (async () => {
   await ensureSchema(pool);

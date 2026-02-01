@@ -1,5 +1,5 @@
 const { incrementPoints } = require('../store');
-const { parseMentions, createRateLimiter } = require('../awards');
+const { parseMentions, createRateLimiter, formatReasonForDisplay } = require('../awards');
 
 function registerAwardHandler(app, { pool, emitLifecycle, config, logger = console }) {
   if (!app) {
@@ -164,7 +164,7 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
         response = `Points awarded: ${summary}.`;
       }
 
-      let displayReason = reason ? formatReasonForDisplay(reason) : reason;
+      const displayReason = formatReasonForDisplay(reason);
       if (displayReason) {
         response += ` Most recently for: ${displayReason}`;
       }
@@ -198,13 +198,4 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
   });
 }
 
-function formatReasonForDisplay(reason) {
-  if (!reason) {
-    return null;
-  }
-
-  const trimmed = reason.replace(/^\s*for\b\s*/i, '').trim();
-  return trimmed.length ? trimmed : null;
-}
-
-module.exports = { registerAwardHandler, formatReasonForDisplay };
+module.exports = { registerAwardHandler };

@@ -5,7 +5,7 @@ Award points by typing `@user++` (no space) and an optional reason. The app incr
 ## Features
 - `@user++` or `@user++ reason` parsing (no space)
 - Multiple `@user++` in a single message (same reason applies)
-- `/points` slash command for leaderboard or single user
+- `/points` slash command for leaderboard, single user, or giving points
 - Records giver, receiver, reason, timestamp
 - OAuth install for multi-workspace apps
 - Postgres-backed storage
@@ -86,7 +86,7 @@ Optional:
 - Awards are rate-limited per giver (`AWARD_RATE_LIMIT_MAX` per `AWARD_RATE_LIMIT_WINDOW_MS`).
 - Replies in-thread when the message is in a thread; otherwise replies in-channel.
 - Records giver and receiver in `point_events` and maintains totals in `points`.
- - `/points` shows a top-10 leaderboard, `/points @user` shows a single user's total.
+- `/points` shows a top-10 leaderboard, `/points @user` shows a single user's total, and `/points give @user reason` awards points.
 
 ## Useful npm scripts
 - `npm run dev` - start the app in watch mode

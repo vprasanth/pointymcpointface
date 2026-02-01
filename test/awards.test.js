@@ -1,8 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { parseMentions, createRateLimiter } = require('../src/awards');
-const { formatReasonForDisplay } = require('../src/handlers/award');
+const { parseMentions, createRateLimiter, formatReasonForDisplay } = require('../src/awards');
 
 test('parseMentions returns null when no awards present', () => {
   const result = parseMentions('hello world');

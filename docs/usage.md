@@ -53,6 +53,7 @@
 - Leaderboard (top 10): `/points`
 - Specific user: `/points @alex`
 - Yourself: `/points me`
+- Give points: `/points give @alex for jumping in`
 
 ## Lifecycle hooks
 Add listeners in `src/listeners.js`. See `docs/lifecycle.md` for the event catalog and payloads.
