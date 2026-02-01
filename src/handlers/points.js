@@ -1,4 +1,5 @@
 const { getPoints, getLeaderboard } = require('../store');
+const logger = require('../logger');
 
 function registerPointsHandler(app, { pool, emitLifecycle }) {
   if (!app) {
@@ -15,6 +16,12 @@ function registerPointsHandler(app, { pool, emitLifecycle }) {
       const targetId = mentionMatch[1];
       const points = await getPoints(pool, { teamId: command.team_id, userId: targetId });
       await respond({ text: `<@${targetId}> has ${points} points.` });
+      logger.info({
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id,
+        targetUserId: targetId
+      }, 'Points queried for user');
       void emitLifecycle('points.query', {
         queryType: 'user',
         teamId: command.team_id,
@@ -29,6 +36,11 @@ function registerPointsHandler(app, { pool, emitLifecycle }) {
     if (text.toLowerCase() === 'me' || text.toLowerCase() === 'mine') {
       const points = await getPoints(pool, { teamId: command.team_id, userId: command.user_id });
       await respond({ text: `<@${command.user_id}> has ${points} points.` });
+      logger.info({
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id
+      }, 'Points queried for self');
       void emitLifecycle('points.query', {
         queryType: 'self',
         teamId: command.team_id,
@@ -43,6 +55,11 @@ function registerPointsHandler(app, { pool, emitLifecycle }) {
     const leaderboard = await getLeaderboard(pool, { teamId: command.team_id, limit: 10 });
     if (!leaderboard.length) {
       await respond({ text: 'No points yet.' });
+      logger.info({
+        teamId: command.team_id,
+        channelId: command.channel_id,
+        requesterId: command.user_id
+      }, 'Leaderboard queried (empty)');
       void emitLifecycle('points.query', {
         queryType: 'leaderboard',
         teamId: command.team_id,
@@ -58,6 +75,12 @@ function registerPointsHandler(app, { pool, emitLifecycle }) {
     );
 
     await respond({ text: `Leaderboard:\n${lines.join('\n')}` });
+    logger.info({
+      teamId: command.team_id,
+      channelId: command.channel_id,
+      requesterId: command.user_id,
+      results: leaderboard.length
+    }, 'Leaderboard queried');
     void emitLifecycle('points.query', {
       queryType: 'leaderboard',
       teamId: command.team_id,

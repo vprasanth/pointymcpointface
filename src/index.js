@@ -9,6 +9,7 @@ const { registerListeners } = require('./listeners');
 const { registerAwardHandler } = require('./handlers/award');
 const { registerPointsHandler } = require('./handlers/points');
 const config = require('./config');
+const logger = require('./logger');
 
 const pool = new Pool({
   connectionString: config.database.url,
@@ -20,7 +21,7 @@ const pool = new Pool({
     : undefined
 });
 
-const lifecycle = createLifecycle({ logger: console });
+const lifecycle = createLifecycle({ logger });
 registerListeners(lifecycle);
 
 const receiver = new ExpressReceiver({
@@ -46,11 +47,11 @@ async function emitLifecycle(eventName, payload) {
   try {
     await enqueueLifecycleEvent(pool, eventName, payload);
   } catch (error) {
-    console.error(`Failed to enqueue lifecycle event ${eventName}`, error);
+    logger.error({ err: error, eventName }, 'Failed to enqueue lifecycle event');
   }
 }
 
-registerAwardHandler(app, { pool, emitLifecycle, config, logger: console });
+registerAwardHandler(app, { pool, emitLifecycle, config, logger });
 registerPointsHandler(app, { pool, emitLifecycle });
 
 (async () => {
@@ -58,11 +59,11 @@ registerPointsHandler(app, { pool, emitLifecycle });
   startOutboxWorker({
     pool,
     lifecycle,
-    logger: console,
+    logger,
     ...config.outbox
   });
   const port = config.port;
   await app.start(port);
-  console.log(`Slack app is running on port ${port}`);
+  logger.info({ port }, 'Slack app is running');
   await emitLifecycle('app.started', { port });
 })();

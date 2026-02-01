@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { enqueueLifecycleEvent } = require('./outbox');
+const logger = require('./logger');
 
 const DEFAULT_STATE_TTL_MS = 10 * 60 * 1000;
 const INSTALLATION_ENCRYPTION_ALG = 'aes-256-gcm';
@@ -113,7 +114,7 @@ async function safeEnqueue(pool, eventName, payload) {
   try {
     await enqueueLifecycleEvent(pool, eventName, payload);
   } catch (error) {
-    console.error(`Failed to enqueue lifecycle event ${eventName}`, error);
+    logger.error({ err: error, eventName }, 'Failed to enqueue lifecycle event');
   }
 }
 
@@ -210,6 +211,12 @@ function createInstallationStore(pool, lifecycle) {
         [teamId, enterpriseId, isEnterpriseInstall, encryptedInstallation]
       );
 
+      logger.info({
+        teamId,
+        enterpriseId,
+        isEnterpriseInstall
+      }, '[oauth] installation stored');
+
       await safeEnqueue(pool, 'oauth.installation.stored', {
         teamId,
         enterpriseId,
@@ -236,8 +243,19 @@ function createInstallationStore(pool, lifecycle) {
       );
 
       if (!result.rows.length) {
+        logger.warn({
+          teamId,
+          enterpriseId,
+          isEnterpriseInstall
+        }, '[oauth] installation not found');
         throw new Error('Installation data not found');
       }
+
+      logger.info({
+        teamId,
+        enterpriseId,
+        isEnterpriseInstall
+      }, '[oauth] installation loaded');
 
       const storedInstallation = result.rows[0].install_data;
       if (!isEncryptedInstallation(storedInstallation)) {
@@ -272,6 +290,12 @@ function createInstallationStore(pool, lifecycle) {
         `,
         [teamId, enterpriseId, isEnterpriseInstall]
       );
+
+      logger.info({
+        teamId,
+        enterpriseId,
+        isEnterpriseInstall
+      }, '[oauth] installation deleted');
 
       await safeEnqueue(pool, 'oauth.installation.deleted', {
         teamId,

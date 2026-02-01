@@ -71,6 +71,7 @@ Optional:
 - `AWARD_MAX_RECIPIENTS` (default 5)
 - `AWARD_RATE_LIMIT_MAX` (default 5)
 - `AWARD_RATE_LIMIT_WINDOW_MS` (default 60000)
+- `LOG_LEVEL` (default info)
 - `OUTBOX_WORKER_ENABLED` (default true)
 - `OUTBOX_POLL_INTERVAL_MS` (default 1000)
 - `OUTBOX_BATCH_SIZE` (default 20)

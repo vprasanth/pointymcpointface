@@ -151,6 +151,9 @@ function startOutboxWorker({
   backoffMs = parseIntEnv(process.env.OUTBOX_BACKOFF_MS, DEFAULT_OUTBOX_BACKOFF_MS)
 } = {}) {
   if (!enabled) {
+    if (logger && logger.info) {
+      logger.info('[outbox] worker disabled');
+    }
     return { stop: () => {} };
   }
 
@@ -185,6 +188,14 @@ function startOutboxWorker({
   }, interval);
 
   void tick();
+  if (logger && logger.info) {
+    logger.info({
+      pollIntervalMs: interval,
+      batchSize,
+      maxAttempts,
+      backoffMs
+    }, '[outbox] worker started');
+  }
 
   return {
     stop: () => clearInterval(timer)

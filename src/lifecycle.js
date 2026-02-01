@@ -42,7 +42,7 @@ function createLifecycle(options = {}) {
     if (logger) {
       results.forEach((result) => {
         if (result.status === 'rejected') {
-          logger.error(`Lifecycle handler failed for ${eventName}`, result.reason);
+          logger.error({ err: result.reason, eventName }, 'Lifecycle handler failed');
         }
       });
     }

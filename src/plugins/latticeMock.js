@@ -18,7 +18,7 @@ function buildMockPayload(event) {
 
 async function maybeSendWebhook(webhookUrl, payload, logger) {
   if (!webhookUrl) {
-    logger.info('[lattice-mock] would send praise payload', payload);
+    logger.info({ payload }, '[lattice-mock] would send praise payload');
     return;
   }
 
@@ -30,15 +30,17 @@ async function maybeSendWebhook(webhookUrl, payload, logger) {
     });
 
     if (!response.ok) {
-      logger.warn('[lattice-mock] webhook responded with non-200', {
+      logger.warn({
         status: response.status,
         statusText: response.statusText
-      });
+      }, '[lattice-mock] webhook responded with non-200');
     }
   } catch (error) {
-    logger.error('[lattice-mock] webhook request failed', error);
+    logger.error({ err: error }, '[lattice-mock] webhook request failed');
   }
 }
+
+const defaultLogger = require('../logger');
 
 function registerLatticeMock(lifecycle, options = {}) {
   if (!lifecycle || typeof lifecycle.on !== 'function') {
@@ -54,7 +56,7 @@ function registerLatticeMock(lifecycle, options = {}) {
   }
 
   const webhookUrl = options.webhookUrl || process.env.LATTICE_MOCK_WEBHOOK_URL || '';
-  const logger = options.logger || console;
+  const logger = options.logger || defaultLogger;
 
   lifecycle.on('points.awarded', async (event) => {
     const payload = buildMockPayload(event);

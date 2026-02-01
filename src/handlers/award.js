@@ -40,12 +40,21 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
     if (!recipients.length) {
       if (!awards.allowSelfAward && originalRecipients.includes(giverId)) {
         await say({ text: 'Self-awards are not allowed.' });
+        logger.info({ teamId, channelId, giverId, messageTs }, 'Self-award blocked');
       }
       return;
     }
 
     if (awards.maxRecipientsPerMessage > 0 && recipients.length > awards.maxRecipientsPerMessage) {
       await say({ text: `Too many recipients. Max per message is ${awards.maxRecipientsPerMessage}.` });
+      logger.info({
+        teamId,
+        channelId,
+        giverId,
+        recipientsCount: recipients.length,
+        maxRecipients: awards.maxRecipientsPerMessage,
+        messageTs
+      }, 'Award blocked by recipient cap');
       return;
     }
 
@@ -53,8 +62,24 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
     if (!rateCheck.allowed) {
       const retryInSeconds = Math.max(1, Math.ceil((rateCheck.resetAt - Date.now()) / 1000));
       await say({ text: `Rate limit exceeded. Try again in ${retryInSeconds} seconds.` });
+      logger.info({
+        teamId,
+        channelId,
+        giverId,
+        recipientsCount: recipients.length,
+        retryInSeconds,
+        messageTs
+      }, 'Award blocked by rate limit');
       return;
     }
+
+    logger.info({
+      teamId,
+      channelId,
+      giverId,
+      recipientsCount: recipients.length,
+      messageTs
+    }, 'Award received');
 
     void emitLifecycle('points.award.received', {
       teamId,
@@ -79,7 +104,23 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
         });
         results.push({ receiverId, points });
 
-        if (!deduped) {
+        if (deduped) {
+          logger.info({
+            teamId,
+            channelId,
+            giverId,
+            receiverId,
+            messageTs
+          }, 'Award deduped');
+        } else {
+          logger.info({
+            teamId,
+            channelId,
+            giverId,
+            receiverId,
+            points,
+            messageTs
+          }, 'Award applied');
           void emitLifecycle('points.awarded', {
             teamId,
             channelId,
@@ -115,8 +156,15 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
       }
 
       await say(payload);
+      logger.info({
+        teamId,
+        channelId,
+        giverId,
+        recipients: results.map((entry) => entry.receiverId),
+        messageTs
+      }, 'Award response sent');
     } catch (error) {
-      logger.error('Failed to record points', error);
+      logger.error({ err: error, teamId, channelId, giverId, messageTs }, 'Failed to record points');
       void emitLifecycle('points.award.failed', {
         teamId,
         channelId,
