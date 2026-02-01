@@ -21,6 +21,8 @@ This repository supports agentic coding tools. Follow these rules when working h
 
 ## Testing and verification
 - If you can run locally, use `docker compose up --build` to validate.
+- For unit tests, run `npm test` (or `npm run test:watch` during iterative work).
+- For local dev, run `npm run dev` (or `npm run docker:up` when using Compose).
 - Call out any steps you could not run.
 
 ## Style

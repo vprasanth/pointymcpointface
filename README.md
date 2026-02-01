@@ -80,13 +80,22 @@ Optional:
 - `PORT` (default 3000)
 
 ## Behavior
-- The app looks for a mention followed immediately by `++` (example: `@alex++ great job`).
+- The app looks for a mention followed by `++` (example: `@alex++ great job` or `@alex ++ great job`).
 - You can award multiple users at once, e.g. `@alex++ @sam++ for jumping in` (reason applies to all).
 - Self-awards are rejected unless `ALLOW_SELF_AWARD=true`.
 - Awards are rate-limited per giver (`AWARD_RATE_LIMIT_MAX` per `AWARD_RATE_LIMIT_WINDOW_MS`).
 - Replies in-thread when the message is in a thread; otherwise replies in-channel.
 - Records giver and receiver in `point_events` and maintains totals in `points`.
  - `/points` shows a top-10 leaderboard, `/points @user` shows a single user's total.
+
+## Useful npm scripts
+- `npm run dev` - start the app in watch mode
+- `npm run test` - run unit tests
+- `npm run test:watch` - run tests in watch mode
+- `npm run docker:up` - build and start Docker Compose
+- `npm run docker:down` - stop Docker Compose
+- `npm run docker:logs` - tail app logs
+- `npm run db:psql` - open a Postgres shell
 
 ## Lifecycle hooks
 Add listeners in `src/listeners.js`. Events are delivered asynchronously from the outbox (at-least-once). See `docs/lifecycle.md` for the event catalog and payloads.
