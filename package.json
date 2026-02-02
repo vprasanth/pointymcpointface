@@ -9,6 +9,7 @@
     "start": "node src/index.js",
     "test": "node --test",
     "test:watch": "node --test --watch",
+    "test:container": "docker compose run --rm app npm test",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f --tail=100 app",

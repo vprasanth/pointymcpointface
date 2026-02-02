@@ -92,6 +92,7 @@ Optional:
 - `npm run dev` - start the app in watch mode
 - `npm run test` - run unit tests
 - `npm run test:watch` - run tests in watch mode
+- `npm run test:container` - run unit tests in the dev container
 - `npm run docker:up` - build and start Docker Compose
 - `npm run docker:down` - stop Docker Compose
 - `npm run docker:logs` - tail app logs
