@@ -7,7 +7,7 @@ const {
   parseLeaderboardCommand,
   parseStatsCommand,
   parseSimpleLookup
-} = require('../src/commands/points');
+} = require('../src/lib/points_commands');
 
 test('parseGiveCommand returns null when not a give command', () => {
   assert.equal(parseGiveCommand('leaderboard'), null);
@@ -17,7 +17,7 @@ test('parseGiveCommand extracts user and reason', () => {
   const result = parseGiveCommand('give <@U123|alex> for helping');
   assert.ok(result);
   assert.equal(result.userId, 'U123');
-  assert.equal(result.reason, 'for helping');
+  assert.equal(result.reason, 'helping');
 });
 
 test('parseGiveCommand reports missing user', () => {

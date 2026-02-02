@@ -1,17 +1,4 @@
-const mentionRegex = /<@([A-Z0-9]+)(?:\|[^>]+)?>/;
-
-function extractFirstMention(text) {
-  if (!text) {
-    return null;
-  }
-
-  const match = mentionRegex.exec(text);
-  if (!match) {
-    return null;
-  }
-
-  return { userId: match[1], raw: match[0] };
-}
+const { parseUserTarget, stripLeadingFor } = require('./command_parsing');
 
 function parseGiveCommand(text) {
   const trimmed = (text || '').trim();
@@ -20,16 +7,12 @@ function parseGiveCommand(text) {
   }
 
   const remainder = trimmed.slice(4).trim();
-  const mention = extractFirstMention(remainder);
-  if (!mention) {
+  const target = parseUserTarget(remainder);
+  if (!target || !target.userId) {
     return { error: 'missing_user' };
   }
 
-  const reasonText = remainder.replace(mention.raw, '').trim();
-  return {
-    userId: mention.userId,
-    reason: reasonText.length ? reasonText : null
-  };
+  return { userId: target.userId, reason: stripLeadingFor(target.remainder) };
 }
 
 function parseHistoryCommand(text) {
@@ -43,17 +26,16 @@ function parseHistoryCommand(text) {
     return { self: true };
   }
 
-  const lower = remainder.toLowerCase();
-  if (lower === 'me' || lower === 'mine') {
-    return { self: true };
-  }
-
-  const mention = extractFirstMention(remainder);
-  if (!mention) {
+  const target = parseUserTarget(remainder, { allowSelf: true });
+  if (!target) {
     return { error: 'missing_user' };
   }
 
-  return { userId: mention.userId };
+  if (target.self) {
+    return { self: true };
+  }
+
+  return { userId: target.userId };
 }
 
 function parseLeaderboardCommand(text) {
@@ -85,13 +67,16 @@ function parseSimpleLookup(text) {
     return null;
   }
 
-  const mention = extractFirstMention(trimmed);
-  if (mention) {
-    return { userId: mention.userId };
+  const target = parseUserTarget(trimmed, { allowSelf: true });
+  if (!target) {
+    return null;
   }
 
-  const lower = trimmed.toLowerCase();
-  if (lower === 'me' || lower === 'mine') {
+  if (target.userId) {
+    return { userId: target.userId };
+  }
+
+  if (target.self) {
     return { self: true };
   }
 
@@ -99,7 +84,6 @@ function parseSimpleLookup(text) {
 }
 
 module.exports = {
-  extractFirstMention,
   parseGiveCommand,
   parseHistoryCommand,
   parseLeaderboardCommand,

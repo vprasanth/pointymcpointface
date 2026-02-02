@@ -13,7 +13,7 @@ const {
   parseLeaderboardCommand,
   parseStatsCommand,
   parseSimpleLookup
-} = require('../commands/points');
+} = require('../lib/points_commands');
 const logger = require('../logger');
 
 function registerPointsHandler(app, { pool, emitLifecycle, config }) {
