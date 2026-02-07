@@ -9,6 +9,7 @@ const { enqueueLifecycleEvent, startOutboxWorker } = require('./outbox');
 const { registerListeners } = require('./listeners');
 const { registerAwardHandler } = require('./handlers/award');
 const { registerPointsHandler } = require('./handlers/points');
+const { renderInstallPage } = require('./install_page');
 const config = require('./config');
 const logger = require('./logger');
 const publicDir = path.join(__dirname, '..', 'public');
@@ -32,6 +33,9 @@ const receiver = new ExpressReceiver({
   clientSecret: config.slack.clientSecret,
   stateSecret: config.slack.stateSecret,
   scopes: config.slack.scopes,
+  installerOptions: {
+    renderHtmlForInstallPath: renderInstallPage
+  },
   installationStore: createInstallationStore(pool, lifecycle),
   stateStore: createStateStore(pool, lifecycle)
 });
@@ -50,6 +54,18 @@ receiver.router.get('/privacy', (req, res) => {
 
 receiver.router.get('/support', (req, res) => {
   res.sendFile(path.join(publicDir, 'support.html'));
+});
+
+receiver.router.get('/logo.png', (req, res) => {
+  res.sendFile(path.join(publicDir, 'logo.png'));
+});
+
+receiver.router.get('/styles/site.css', (req, res) => {
+  res.sendFile(path.join(publicDir, 'styles', 'site.css'));
+});
+
+receiver.router.get('/styles/install.css', (req, res) => {
+  res.sendFile(path.join(publicDir, 'styles', 'install.css'));
 });
 
 const app = new App({

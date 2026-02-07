@@ -3,91 +3,193 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ack for Slack</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f7f7f8;
-      --card: #ffffff;
-      --text: #1f2328;
-      --muted: #57606a;
-      --border: #d0d7de;
-      --accent: #0969da;
-    }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      line-height: 1.5;
-    }
-    main {
-      max-width: 920px;
-      margin: 32px auto;
-      padding: 0 16px;
-    }
-    article {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-    }
-    h1, h2 {
-      line-height: 1.25;
-    }
-    h1 {
-      margin-top: 0;
-      font-size: 1.8rem;
-    }
-    h2 {
-      margin-top: 24px;
-      font-size: 1.1rem;
-    }
-    .muted {
-      color: var(--muted);
-    }
-    .cta {
-      display: inline-block;
-      margin-top: 8px;
-      background: var(--accent);
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-weight: 600;
-    }
-    .links a {
-      margin-right: 14px;
-    }
-    a {
-      color: var(--accent);
-    }
-  </style>
+  <title>ACK RFC for Slack</title>
+  <meta name="description" content="ACK - A Lightweight Human Acknowledgement Protocol for Slack teams.">
+  <link rel="canonical" href="https://ack.bleeping.dev/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Ack">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="https://ack.bleeping.dev/">
+  <meta property="og:title" content="ACK - A Lightweight Human Acknowledgement Protocol">
+  <meta property="og:description" content="A lightweight protocol for acknowledging helpful actions by humans in Slack.">
+  <meta property="og:image" content="https://ack.bleeping.dev/logo.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="Ack logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="ACK - A Lightweight Human Acknowledgement Protocol">
+  <meta name="twitter:description" content="A lightweight protocol for acknowledging helpful actions by humans in Slack.">
+  <meta name="twitter:image" content="https://ack.bleeping.dev/logo.png">
+  <meta name="twitter:image:alt" content="Ack logo">
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="apple-touch-icon" href="/logo.png">
+  <link rel="stylesheet" href="/styles/site.css">
 </head>
 <body>
-  <main>
-    <article>
-      <h1>Ack for Slack</h1>
-      <p class="muted">
-        Ack is a lightweight recognition app for Slack. Team members award points with <code>@user++</code> and use <code>/points</code> to view totals, history, and leaderboards.
-      </p>
+  <main class="rfc-container">
+    <article class="rfc-document">
+      <header class="rfc-header">
+        <h1>ACK &mdash; A Lightweight Human Acknowledgement Protocol</h1>
+        <dl class="rfc-meta">
+          <div>
+            <dt>Status:</dt>
+            <dd>Informational</dd>
+          </div>
+          <div>
+            <dt>Category:</dt>
+            <dd>Best Current Practice</dd>
+          </div>
+          <div>
+            <dt>Updates:</dt>
+            <dd>None</dd>
+          </div>
+          <div>
+            <dt>Intended Audience:</dt>
+            <dd>Humans working in Slack</dd>
+          </div>
+        </dl>
+      </header>
 
-      <p>
-        <a class="cta" href="/slack/install">Install Ack in Slack</a>
-      </p>
+      <section>
+        <h2>Abstract</h2>
+        <p>
+          This document specifies ACK, a lightweight protocol for acknowledging helpful actions performed by humans in collaborative systems. ACK is designed to be fast, low-overhead, and compatible with existing Slack-based workflows.
+        </p>
+        <p>
+          ACK enables participants to explicitly acknowledge assistance, effort, or positive contributions using a minimal syntax, without introducing ceremony, governance, or additional process.
+        </p>
+      </section>
 
-      <h2>How Ack works</h2>
-      <ul>
-        <li>Give points in messages with <code>@user++</code> plus an optional reason.</li>
-        <li>Query points with <code>/points</code>, including leaderboard, stats, and history.</li>
-        <li>Supports public and private channels by default.</li>
-      </ul>
+      <section>
+        <h2>1. Introduction</h2>
+        <p>
+          In distributed systems, acknowledgements (ACKs) are used to confirm receipt, signal progress, and ensure shared understanding.
+        </p>
+        <p>
+          In human systems, similar signals are often implicit, delayed, or missing entirely.
+        </p>
+        <p>
+          The ACK protocol addresses this gap by providing a simple, explicit mechanism for human acknowledgement that is:
+        </p>
+        <ul>
+          <li>Fast</li>
+          <li>Visible</li>
+          <li>Low friction</li>
+          <li>Socially lightweight</li>
+        </ul>
+      </section>
 
-      <h2>Marketplace links</h2>
-      <p class="links">
+      <section>
+        <h2>2. Terminology</h2>
+        <p>
+          The key words MUST, SHOULD, and MAY are to be interpreted as described in RFC 2119.
+        </p>
+        <p><strong>Participant:</strong> A human user within a Slack workspace.</p>
+        <p><strong>ACK:</strong> An acknowledgement signal indicating appreciation or recognition.</p>
+        <p><strong>Emitter:</strong> The participant issuing an ACK.</p>
+        <p><strong>Recipient:</strong> The participant receiving an ACK.</p>
+      </section>
+
+      <section>
+        <h2>3. Protocol Overview</h2>
+        <p>ACK operates within Slack message streams.</p>
+        <p>
+          An ACK is emitted by appending the token <code>++</code> to a participant mention.
+        </p>
+        <p class="example-label">Example:</p>
+        <pre aria-label="ACK example">@alice++</pre>
+        <p>
+          This indicates that the emitter acknowledges the recipient for a contribution, assistance, or action.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Design Goals</h2>
+        <p>ACK is intentionally minimal.</p>
+        <p>The protocol is designed to:</p>
+        <ul>
+          <li>Avoid interrupting existing workflows</li>
+          <li>Require no additional UI interaction</li>
+          <li>Be human-readable</li>
+          <li>Be socially safe to use frequently</li>
+        </ul>
+        <p>ACK MUST NOT require:</p>
+        <ul>
+          <li>Approval flows</li>
+          <li>Scoring justification</li>
+          <li>Managerial oversight</li>
+          <li>Retrospective explanation</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>5. Usage Semantics</h2>
+        <p>ACKs MAY be used to acknowledge:</p>
+        <ul>
+          <li>Answering a question</li>
+          <li>Unblocking a teammate</li>
+          <li>Shipping a fix</li>
+          <li>Reviewing work</li>
+          <li>Being reliable</li>
+          <li>Doing the right thing quietly</li>
+        </ul>
+        <p>
+          ACKs SHOULD be sent close in time to the acknowledged action.
+        </p>
+        <p>
+          ACKs MAY be public and are intentionally visible to the channel.
+        </p>
+      </section>
+
+      <section>
+        <h2>6. Observability</h2>
+        <p>
+          ACK implementations MAY provide lightweight aggregation or summaries (e.g. leaderboards or counts).
+        </p>
+        <p>
+          Such features SHOULD remain secondary and MUST NOT interfere with the primary function of acknowledgement.
+        </p>
+        <p>ACK is not a performance evaluation system.</p>
+      </section>
+
+      <section>
+        <h2>7. Security Considerations</h2>
+        <p>ACK is not security-sensitive.</p>
+        <p>However, implementations SHOULD avoid:</p>
+        <ul>
+          <li>Incentive distortion</li>
+          <li>Competitive misuse</li>
+          <li>Over-optimization of acknowledgement signals</li>
+        </ul>
+        <p>
+          ACK is designed to reinforce healthy team dynamics, not replace trust.
+        </p>
+      </section>
+
+      <section>
+        <h2>8. Philosophy</h2>
+        <p>In networking, ACKs confirm progress.</p>
+        <p>In teams, they do too.</p>
+        <p>
+          ACK exists to make small moments of appreciation explicit, visible, and easy &mdash; because reliable systems depend on reliable humans.
+        </p>
+      </section>
+
+      <section>
+        <h2>9. Conclusion</h2>
+        <p>
+          ACK provides a simple protocol for human acknowledgement in collaborative environments.
+        </p>
+        <p>It does not attempt to measure value.</p>
+        <p>It merely confirms that value was noticed.</p>
+      </section>
+
+      <footer class="rfc-footer">
+        <a href="/slack/install">Install in Slack</a>
         <a href="/privacy">Privacy Policy</a>
         <a href="/support">Support</a>
-      </p>
+      </footer>
     </article>
   </main>
 </body>

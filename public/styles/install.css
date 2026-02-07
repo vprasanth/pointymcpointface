@@ -1,0 +1,28 @@
+.install-page .container {
+  max-width: 560px;
+}
+
+.install-page .card {
+  text-align: center;
+}
+
+.install-page .brand {
+  justify-content: center;
+}
+
+.install-page .muted {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.install-page .install {
+  display: inline-block;
+  margin-top: 8px;
+  line-height: 0;
+}
+
+.install-page .footer {
+  margin-top: 16px;
+  font-size: 0.92rem;
+  color: var(--muted);
+}

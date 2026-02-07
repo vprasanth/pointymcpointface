@@ -6,6 +6,6 @@
   "service": "app",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm ci",
   "forwardPorts": [3000]
 }

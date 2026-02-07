@@ -18,6 +18,7 @@ Award points by typing `@user++` (no space) and an optional reason. The app incr
    docker compose up --build
    ```
 3. The app runs on `http://localhost:3000`.
+4. Source changes in `src/` and `public/` are auto-reloaded inside Docker without restarting Compose.
 
 Note: For Slack to reach your app during local dev, expose it with a tunnel (ngrok, Cloudflare Tunnel, etc.).
 
@@ -92,6 +93,7 @@ Optional:
 
 ## Useful npm scripts
 - `npm run dev` - start the app in watch mode
+- `npm run dev:docker` - start the app with polling-based reload for bind-mounted Docker files
 - `npm run test` - run unit tests
 - `npm run test:watch` - run tests in watch mode
 - `npm run test:container` - run unit tests in the dev container
@@ -104,7 +106,7 @@ Optional:
 Add listeners in `src/listeners.js`. Events are delivered asynchronously from the outbox (at-least-once). See `docs/lifecycle.md` for the event catalog and payloads.
 
 ## Devcontainer
-Open this repo in VS Code and choose “Reopen in Container”. It uses the same `docker-compose.yml` and runs `npm install` automatically.
+Open this repo in VS Code and choose “Reopen in Container”. It uses the same `docker-compose.yml` and runs `npm ci` automatically.
 
 ## Public Pages
 - Landing page: `https://YOUR_DOMAIN/`
