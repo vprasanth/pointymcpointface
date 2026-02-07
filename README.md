@@ -112,3 +112,9 @@ Open this repo in VS Code and choose “Reopen in Container”. It uses the same
 - Landing page: `https://ack.bleeping.dev/`
 - Privacy policy: `https://ack.bleeping.dev/privacy`
 - Support page: `https://ack.bleeping.dev/support`
+
+## Cloudflare hosting plan
+- See `docs/cloudflare-pages-workers-neon-plan.md` for setup instructions for:
+  - Cloudflare Pages (static site)
+  - Cloudflare Worker (Slack endpoints)
+  - Neon Postgres (with optional Hyperdrive)

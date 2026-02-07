@@ -1,0 +1,14 @@
+# Do not commit real secrets or internal IDs.
+
+zone_name          = "bleeping.dev"
+zone_id            = "REPLACE_WITH_ZONE_ID"
+web_hostname       = "ack.bleeping.dev"
+api_hostname       = "api.ack.bleeping.dev"
+pages_project_name = "ack-web"
+worker_name        = "ack-api"
+
+worker_slack_routes = [
+  "/slack/install",
+  "/slack/oauth_redirect",
+  "/slack/events"
+]

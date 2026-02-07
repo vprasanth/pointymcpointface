@@ -1,0 +1,29 @@
+name = "ack-api"
+main = "src/worker/index.js"
+compatibility_date = "2026-02-07"
+workers_dev = false
+
+# Keep only non-secret values in this file.
+[vars]
+APP_ENV = "production"
+ACK_PUBLIC_BASE_URL = "https://ack.bleeping.dev"
+SLACK_BASE_PATH = "/slack"
+
+# Route patterns can be managed here or via Terraform (pick one source of truth).
+routes = [
+  { pattern = "api.ack.bleeping.dev/slack/install", zone_name = "bleeping.dev" },
+  { pattern = "api.ack.bleeping.dev/slack/oauth_redirect", zone_name = "bleeping.dev" },
+  { pattern = "api.ack.bleeping.dev/slack/events", zone_name = "bleeping.dev" }
+]
+
+# Optional Hyperdrive binding:
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# id = "REPLACE_WITH_HYPERDRIVE_ID"
+
+# Optional staging environment:
+# [env.staging]
+# name = "ack-api-staging"
+# routes = [
+#   { pattern = "api-staging.ack.bleeping.dev/slack/*", zone_name = "bleeping.dev" }
+# ]

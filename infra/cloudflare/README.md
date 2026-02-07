@@ -16,3 +16,10 @@ This folder is reserved for Cloudflare Terraform code.
 ## Scope
 - Manage only Ack-related DNS/rules/certificate settings here.
 - Keep broader account-level resources in a separate, restricted infra workspace.
+
+## Current scaffold
+- Worker template and secrets checklist:
+  - `infra/cloudflare/workers/ack-api/wrangler.toml.example`
+  - `infra/cloudflare/workers/ack-api/SECRETS_CHECKLIST.md`
+- Terraform structure (no resources yet):
+  - `infra/cloudflare/terraform/`

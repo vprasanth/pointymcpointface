@@ -20,3 +20,8 @@ override.tf.json
 terraform.rc
 *.tfplan
 *.tfplan.*
+
+# Cloudflare Wrangler local artifacts and secrets
+.wrangler/
+.dev.vars
+.dev.vars.*
