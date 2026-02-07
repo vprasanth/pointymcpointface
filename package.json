@@ -1,8 +1,8 @@
 {
-  "name": "pointymcpointface",
+  "name": "ack",
   "private": true,
   "version": "0.1.0",
-  "description": "Slack app for awarding points with @user++",
+  "description": "Ack for Slack: award points with @user++",
   "main": "src/index.js",
   "scripts": {
     "dev": "node --watch src/index.js",
@@ -13,7 +13,7 @@
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f --tail=100 app",
-    "db:psql": "docker compose exec db psql -U postgres -d pointymcpointface"
+    "db:psql": "docker compose exec db psql -U postgres -d ack"
   },
   "engines": {
     "node": ">=20"

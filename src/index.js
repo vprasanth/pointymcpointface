@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const path = require('path');
 const { App, ExpressReceiver, LogLevel } = require('@slack/bolt');
 const { Pool } = require('pg');
 const { ensureSchema, createInstallationStore, createStateStore } = require('./store');
@@ -10,6 +11,7 @@ const { registerAwardHandler } = require('./handlers/award');
 const { registerPointsHandler } = require('./handlers/points');
 const config = require('./config');
 const logger = require('./logger');
+const publicDir = path.join(__dirname, '..', 'public');
 
 const pool = new Pool({
   connectionString: config.database.url,
@@ -36,6 +38,18 @@ const receiver = new ExpressReceiver({
 
 receiver.router.get('/health', (req, res) => {
   res.status(200).send('ok');
+});
+
+receiver.router.get('/', (req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
+
+receiver.router.get('/privacy', (req, res) => {
+  res.sendFile(path.join(publicDir, 'privacy.html'));
+});
+
+receiver.router.get('/support', (req, res) => {
+  res.sendFile(path.join(publicDir, 'support.html'));
 });
 
 const app = new App({

@@ -1,4 +1,4 @@
-# PointyMcPointface
+# Ack
 
 Award points by typing `@user++` (no space) and an optional reason. The app increments that user's points, records who gave them, and replies with the updated total.
 
@@ -105,3 +105,8 @@ Add listeners in `src/listeners.js`. Events are delivered asynchronously from th
 
 ## Devcontainer
 Open this repo in VS Code and choose “Reopen in Container”. It uses the same `docker-compose.yml` and runs `npm install` automatically.
+
+## Public Pages
+- Landing page: `https://YOUR_DOMAIN/`
+- Privacy policy: `https://YOUR_DOMAIN/privacy`
+- Support page: `https://YOUR_DOMAIN/support`

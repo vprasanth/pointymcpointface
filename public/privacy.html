@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ack Privacy Policy</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f7f8;
+      --card: #ffffff;
+      --text: #1f2328;
+      --muted: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 860px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+    article {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    h1, h2 {
+      line-height: 1.25;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+    }
+    h2 {
+      margin-top: 28px;
+      font-size: 1.1rem;
+    }
+    p, li {
+      color: var(--text);
+    }
+    .muted {
+      color: var(--muted);
+    }
+    a {
+      color: var(--accent);
+    }
+    code {
+      background: #f6f8fa;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 4px;
+      font-size: 0.92em;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+      <h1>Privacy Policy for Ack</h1>
+      <p class="muted"><strong>Effective date:</strong> February 7, 2026</p>
+
+      <p>
+        This Privacy Policy describes how Ack ("the App") handles information when installed in a Slack workspace.
+      </p>
+
+      <h2>Information We Process</h2>
+      <ul>
+        <li>Slack workspace identifiers (for example, team and channel IDs).</li>
+        <li>Slack user identifiers for users who give or receive points.</li>
+        <li>Award metadata such as giver, receiver, timestamp, and optional reason text.</li>
+        <li>OAuth installation data required to operate the Slack app.</li>
+      </ul>
+
+      <h2>How We Use Information</h2>
+      <ul>
+        <li>To process <code>@user++</code> awards and <code>/points</code> commands.</li>
+        <li>To maintain points totals, leaderboard results, and award history.</li>
+        <li>To operate app installation/authentication and support reliability/diagnostics.</li>
+      </ul>
+
+      <h2>Data Storage and Security</h2>
+      <ul>
+        <li>Data is stored in a Postgres database operated by the app owner.</li>
+        <li>OAuth installation data is encrypted at rest.</li>
+        <li>Access to production systems should be limited to authorized operators.</li>
+      </ul>
+
+      <h2>Data Sharing</h2>
+      <p>
+        We do not sell personal information. Data is only shared as needed to operate the App,
+        such as hosting, database, and infrastructure providers used by the app owner.
+      </p>
+
+      <h2>Data Retention</h2>
+      <p>
+        Data is retained for as long as needed to provide App functionality and meet operational or legal obligations.
+        Workspace admins may request deletion of workspace data.
+      </p>
+
+      <h2>Your Choices</h2>
+      <ul>
+        <li>Workspace admins can uninstall the App at any time.</li>
+        <li>Workspace admins can request deletion of stored data for their workspace.</li>
+      </ul>
+
+      <h2>Contact</h2>
+      <p>
+        For privacy questions or deletion requests, contact:
+        <a href="mailto:support@ack.example">support@ack.example</a>
+      </p>
+
+      <h2>Policy Changes</h2>
+      <p>
+        We may update this policy from time to time. Material updates will be posted at this URL with a new effective date.
+      </p>
+      <p>
+        Additional support information is available at <a href="/support">/support</a>.
+      </p>
+    </article>
+  </main>
+</body>
+</html>

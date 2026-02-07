@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ack for Slack</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f7f8;
+      --card: #ffffff;
+      --text: #1f2328;
+      --muted: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+    }
+    main {
+      max-width: 920px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+    article {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    h1, h2 {
+      line-height: 1.25;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+    }
+    h2 {
+      margin-top: 24px;
+      font-size: 1.1rem;
+    }
+    .muted {
+      color: var(--muted);
+    }
+    .cta {
+      display: inline-block;
+      margin-top: 8px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 600;
+    }
+    .links a {
+      margin-right: 14px;
+    }
+    a {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+      <h1>Ack for Slack</h1>
+      <p class="muted">
+        Ack is a lightweight recognition app for Slack. Team members award points with <code>@user++</code> and use <code>/points</code> to view totals, history, and leaderboards.
+      </p>
+
+      <p>
+        <a class="cta" href="/slack/install">Install Ack in Slack</a>
+      </p>
+
+      <h2>How Ack works</h2>
+      <ul>
+        <li>Give points in messages with <code>@user++</code> plus an optional reason.</li>
+        <li>Query points with <code>/points</code>, including leaderboard, stats, and history.</li>
+        <li>Supports public and private channels by default.</li>
+      </ul>
+
+      <h2>Marketplace links</h2>
+      <p class="links">
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/support">Support</a>
+      </p>
+    </article>
+  </main>
+</body>
+</html>
