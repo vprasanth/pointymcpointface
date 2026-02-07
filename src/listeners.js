@@ -1,4 +1,4 @@
-const { registerLatticeMock } = require('./plugins/latticeMock');
+const { registerLatticeMock } = require('./plugins/lattice_mock');
 const logger = require('./logger');
 
 function registerListeners(lifecycle) {

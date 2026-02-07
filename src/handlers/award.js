@@ -1,6 +1,6 @@
 const { incrementPoints } = require('../store');
 const { parseMentions, createRateLimiter, formatReasonForDisplay } = require('../awards');
-const { mapMessageChannelTypeToSurface } = require('../slackScopes');
+const { mapMessageChannelTypeToSurface } = require('../slack_scopes');
 
 function registerAwardHandler(app, { pool, emitLifecycle, config, logger = console }) {
   if (!app) {

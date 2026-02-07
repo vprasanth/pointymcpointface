@@ -133,7 +133,7 @@ Payload:
 - `stats` (only for stats queries)
 
 ## Mock integration example (Lattice praise)
-To demonstrate how lifecycle hooks can power integrations, a mock Lattice plugin is included in `src/plugins/latticeMock.js`.
+To demonstrate how lifecycle hooks can power integrations, a mock Lattice plugin is included in `src/plugins/lattice_mock.js`.
 
 Enable it by setting:
 - `LATTICE_MOCK_ENABLED=true`

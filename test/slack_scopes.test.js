@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { buildSlackScopesConfig, mapMessageChannelTypeToSurface } = require('../src/slackScopes');
+const { buildSlackScopesConfig, mapMessageChannelTypeToSurface } = require('../src/slack_scopes');
 
 test('defaults to public and private channels history scopes', () => {
   const result = buildSlackScopesConfig({});

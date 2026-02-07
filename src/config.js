@@ -1,4 +1,4 @@
-const { buildSlackScopesConfig } = require('./slackScopes');
+const { buildSlackScopesConfig } = require('./slack_scopes');
 
 function parseBoolean(value, fallback) {
   if (value === undefined || value === '') {
