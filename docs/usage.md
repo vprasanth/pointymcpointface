@@ -16,7 +16,7 @@
 
 ## Slack app configuration
 ### OAuth & Permissions
-- Redirect URL: `https://YOUR_DOMAIN/slack/oauth_redirect`
+- Redirect URL: `https://ack.bleeping.dev/slack/oauth_redirect`
 - Bot scopes (default):
   - `chat:write`
   - `channels:history`
@@ -27,7 +27,7 @@
   - `mpim:history`
 
 ### Event Subscriptions
-- Request URL: `https://YOUR_DOMAIN/slack/events`
+- Request URL: `https://ack.bleeping.dev/slack/events`
 - Subscribe to bot events (default):
   - `message.channels`
   - `message.groups`
@@ -37,10 +37,10 @@
 
 ### Slash Commands
 - Create `/points`
-- Request URL: `https://YOUR_DOMAIN/slack/events`
+- Request URL: `https://ack.bleeping.dev/slack/events`
 
 ### Install
-- Visit `https://YOUR_DOMAIN/slack/install` and install the app.
+- Visit `https://ack.bleeping.dev/slack/install` and install the app.
 - Invite the bot to channels you want it to monitor.
 
 ## Awarding points

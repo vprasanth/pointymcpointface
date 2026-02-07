@@ -26,7 +26,7 @@ Note: For Slack to reach your app during local dev, expose it with a tunnel (ngr
 Create a Slack app and configure:
 
 1. **OAuth & Permissions**
-   - Redirect URL: `https://YOUR_DOMAIN/slack/oauth_redirect`
+   - Redirect URL: `https://ack.bleeping.dev/slack/oauth_redirect`
    - Bot scopes (default):
      - `chat:write`
      - `channels:history`
@@ -37,7 +37,7 @@ Create a Slack app and configure:
      - `mpim:history`
 
 2. **Event Subscriptions**
-   - Request URL: `https://YOUR_DOMAIN/slack/events`
+   - Request URL: `https://ack.bleeping.dev/slack/events`
    - Subscribe to bot events (default):
      - `message.channels`
      - `message.groups`
@@ -47,10 +47,10 @@ Create a Slack app and configure:
 
    **Slash Commands**
    - Create `/points`
-   - Request URL: `https://YOUR_DOMAIN/slack/events`
+   - Request URL: `https://ack.bleeping.dev/slack/events`
 
 3. **Install**
-   - Visit `https://YOUR_DOMAIN/slack/install` to install the app.
+   - Visit `https://ack.bleeping.dev/slack/install` to install the app.
    - Invite the bot to channels you want it to monitor.
 
 ## Environment Variables
@@ -109,6 +109,6 @@ Add listeners in `src/listeners.js`. Events are delivered asynchronously from th
 Open this repo in VS Code and choose “Reopen in Container”. It uses the same `docker-compose.yml` and runs `npm ci` automatically.
 
 ## Public Pages
-- Landing page: `https://YOUR_DOMAIN/`
-- Privacy policy: `https://YOUR_DOMAIN/privacy`
-- Support page: `https://YOUR_DOMAIN/support`
+- Landing page: `https://ack.bleeping.dev/`
+- Privacy policy: `https://ack.bleeping.dev/privacy`
+- Support page: `https://ack.bleeping.dev/support`
