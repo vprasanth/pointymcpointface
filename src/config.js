@@ -1,3 +1,5 @@
+const { buildSlackScopesConfig } = require('./slackScopes');
+
 function parseBoolean(value, fallback) {
   if (value === undefined || value === '') {
     return fallback;
@@ -28,7 +30,7 @@ const {
   SLACK_CLIENT_SECRET,
   SLACK_SIGNING_SECRET,
   SLACK_STATE_SECRET,
-  SLACK_SCOPES,
+  SLACK_HISTORY_SURFACES,
   ALLOW_SELF_AWARD,
   AWARD_MAX_RECIPIENTS,
   AWARD_RATE_LIMIT_MAX,
@@ -52,10 +54,9 @@ if (!INSTALLATION_ENCRYPTION_KEY) {
   throw new Error('INSTALLATION_ENCRYPTION_KEY is required');
 }
 
-const scopes = (SLACK_SCOPES || 'chat:write,channels:history,groups:history,im:history,mpim:history,commands')
-  .split(',')
-  .map((scope) => scope.trim())
-  .filter(Boolean);
+const { scopes, historySurfaces } = buildSlackScopesConfig({
+  historySurfacesEnv: SLACK_HISTORY_SURFACES
+});
 
 const sslEnabled = parseBoolean(DATABASE_SSL, false);
 const sslRejectUnauthorized = parseBoolean(DATABASE_SSL_REJECT_UNAUTHORIZED, true);
@@ -74,7 +75,8 @@ const config = {
     clientSecret: SLACK_CLIENT_SECRET,
     signingSecret: SLACK_SIGNING_SECRET,
     stateSecret: SLACK_STATE_SECRET,
-    scopes
+    scopes,
+    historySurfaces
   },
   awards: {
     allowSelfAward: parseBoolean(ALLOW_SELF_AWARD, false),

@@ -26,21 +26,23 @@ Create a Slack app and configure:
 
 1. **OAuth & Permissions**
    - Redirect URL: `https://YOUR_DOMAIN/slack/oauth_redirect`
-  - Bot scopes (default):
-    - `chat:write`
-    - `channels:history`
-    - `groups:history`
-    - `im:history`
-    - `mpim:history`
-    - `commands`
+   - Bot scopes (default):
+     - `chat:write`
+     - `channels:history`
+     - `groups:history`
+     - `commands`
+   - Optional history scopes (only if you enable those surfaces):
+     - `im:history`
+     - `mpim:history`
 
 2. **Event Subscriptions**
    - Request URL: `https://YOUR_DOMAIN/slack/events`
-   - Subscribe to bot events:
-    - `message.channels`
-    - `message.groups`
-    - `message.im`
-      - `message.mpim`
+   - Subscribe to bot events (default):
+     - `message.channels`
+     - `message.groups`
+   - Optional events (only if you enable those surfaces):
+     - `message.im`
+     - `message.mpim`
 
    **Slash Commands**
    - Create `/points`
@@ -62,7 +64,7 @@ Required:
 Generate an encryption key with `openssl rand -base64 32` or `openssl rand -hex 32`.
 
 Optional:
-- `SLACK_SCOPES` (comma-separated)
+- `SLACK_HISTORY_SURFACES` (comma-separated; default `channels,groups`; valid values: `channels,groups,im,mpim`, or `none`)
 - `OAUTH_STATE_TTL_MS` (default 600000)
 - `DATABASE_SSL` (`true` to enable SSL)
 - `DATABASE_SSL_CA` (PEM-encoded CA certificate)

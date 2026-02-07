@@ -1,5 +1,6 @@
 const { incrementPoints } = require('../store');
 const { parseMentions, createRateLimiter, formatReasonForDisplay } = require('../awards');
+const { mapMessageChannelTypeToSurface } = require('../slackScopes');
 
 function registerAwardHandler(app, { pool, emitLifecycle, config, logger = console }) {
   if (!app) {
@@ -7,6 +8,7 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
   }
 
   const { awards } = config;
+  const allowedHistorySurfaces = new Set(config.slack.historySurfaces || []);
   const checkRateLimit = createRateLimiter({
     rateLimitMax: awards.rateLimitMax,
     rateLimitWindowMs: awards.rateLimitWindowMs
@@ -27,16 +29,25 @@ function registerAwardHandler(app, { pool, emitLifecycle, config, logger = conso
       return;
     }
 
+    const messageSurface = mapMessageChannelTypeToSurface(message.channel_type);
+    if (!allowedHistorySurfaces.has(messageSurface)) {
+      logger.info({
+        channelType: message.channel_type || null,
+        messageSurface,
+        allowedHistorySurfaces: [...allowedHistorySurfaces],
+        messageTs: message.ts
+      }, 'Message ignored (unsupported surface)');
+      return;
+    }
+
     const parsed = parseMentions(message.text);
     if (!parsed) {
       if (message.text.includes('++')) {
-        const sample = message.text.length > 160 ? `${message.text.slice(0, 160)}…` : message.text;
         logger.info({
           teamId: context.teamId || message.team,
           channelId: message.channel,
           giverId: message.user,
           messageTs: message.ts,
-          textSample: sample
         }, 'Message contained ++ but no awards were parsed');
       } else {
         logger.debug({ messageTs: message.ts }, 'Message ignored (no awards)');

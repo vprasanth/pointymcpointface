@@ -17,19 +17,21 @@
 ## Slack app configuration
 ### OAuth & Permissions
 - Redirect URL: `https://YOUR_DOMAIN/slack/oauth_redirect`
-- Bot scopes:
+- Bot scopes (default):
   - `chat:write`
   - `channels:history`
   - `groups:history`
+  - `commands`
+- Optional history scopes (only if you enable those surfaces):
   - `im:history`
   - `mpim:history`
-  - `commands`
 
 ### Event Subscriptions
 - Request URL: `https://YOUR_DOMAIN/slack/events`
-- Subscribe to bot events:
+- Subscribe to bot events (default):
   - `message.channels`
   - `message.groups`
+- Optional events (only if you enable those surfaces):
   - `message.im`
   - `message.mpim`
 
