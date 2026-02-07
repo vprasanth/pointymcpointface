@@ -2,7 +2,7 @@
   "name": "ack",
   "private": true,
   "version": "0.1.0",
-  "description": "Ack for Slack: award points with @user++",
+  "description": "Ack for Slack: Acknowledgement, minus the ceremony @user++",
   "main": "src/index.js",
   "scripts": {
     "dev": "node --watch src/index.js",
